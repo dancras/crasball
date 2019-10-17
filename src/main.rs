@@ -92,6 +92,10 @@ fn find_intersection(
     }
 }
 
+fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
+    i - n * (n.dot(&i) * 2.0)
+}
+
 impl EventHandler for CrasballGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         let newpos: Point2<f32>;
@@ -103,7 +107,7 @@ impl EventHandler for CrasballGame {
         );
 
         if intersects {
-            next_move = Vector2::new(1.0, -1.0);
+            next_move = reflect_vector(self.ball.movement, Vector2::new(0.0, 1.0));
 
             let travelled = intersect_point - self.ball.position;
             let remaining = travelled.norm() / self.ball.movement.norm();
