@@ -27,7 +27,7 @@ fn main() {
 struct Ball {
     radius: f32,
     position: Point2<f32>,
-    direction: Vector2<f32>
+    movement: Vector2<f32>
 }
 
 struct CrasballGame {
@@ -41,7 +41,7 @@ impl CrasballGame {
             ball: Ball {
                 radius: 50.0,
                 position: Point2::new(200.0, 200.0),
-                direction: Vector2::new(1.0, 1.0)
+                movement: Vector2::new(1.0, 1.0)
             }
         }
     }
@@ -95,20 +95,29 @@ fn find_intersection(
 impl EventHandler for CrasballGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         let newpos: Point2<f32>;
+        let next_move: Vector2<f32>;
 
-        let (intersects, point) = find_intersection(
-            self.ball.position, self.ball.position + self.ball.direction,
+        let (intersects, intersect_point) = find_intersection(
+            self.ball.position, self.ball.position + self.ball.movement,
             Point2::new(0.0, 600.0), Point2::new(800.0, 600.0)
         );
 
         if intersects {
-            newpos = Point2::new(200.0, 200.0);
+            next_move = Vector2::new(1.0, -1.0);
+
+            let travelled = intersect_point - self.ball.position;
+            let remaining = travelled.norm() / self.ball.movement.norm();
+            // let remaining = (intersect_point - self.ball.position) * self.ball.movement;
+            //newpos = Point2::new(200.0, 200.0);
+            newpos = intersect_point + next_move * remaining;
         } else {
-            newpos = self.ball.position + self.ball.direction;
+            next_move = self.ball.movement;
+            newpos = self.ball.position + self.ball.movement;
         }
 
         self.ball = Ball {
             position: newpos,
+            movement: next_move,
             ..self.ball
         };
 
