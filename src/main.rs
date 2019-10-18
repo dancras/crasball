@@ -31,7 +31,14 @@ struct Ball {
 }
 
 struct CrasballGame {
-    ball: Ball
+    ball: Ball,
+    walls: Vec<Wall>
+}
+
+struct Wall {
+    a: Point2<f32>,
+    b: Point2<f32>,
+    n: Vector2<f32>
 }
 
 impl CrasballGame {
@@ -42,7 +49,29 @@ impl CrasballGame {
                 radius: 50.0,
                 position: Point2::new(200.0, 200.0),
                 movement: Vector2::new(1.0, 1.0)
-            }
+            },
+            walls: vec![
+                Wall {
+                    a: Point2::new(0.0, 0.0),
+                    b: Point2::new(800.0, 0.0),
+                    n: Vector2::new(0.0, 1.0)
+                },
+                Wall {
+                    a: Point2::new(0.0, 600.0),
+                    b: Point2::new(800.0, 600.0),
+                    n: Vector2::new(0.0, -1.0)
+                },
+                Wall {
+                    a: Point2::new(800.0, 0.0),
+                    b: Point2::new(800.0, 600.0),
+                    n: Vector2::new(-1.0, 0.0)
+                },
+                Wall {
+                    a: Point2::new(0.0, 0.0),
+                    b: Point2::new(0.0, 600.0),
+                    n: Vector2::new(1.0, 0.0)
+                }
+            ]
         }
     }
 }
@@ -98,25 +127,29 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
 
 impl EventHandler for CrasballGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        let newpos: Point2<f32>;
-        let next_move: Vector2<f32>;
 
-        let (intersects, intersect_point) = find_intersection(
-            self.ball.position, self.ball.position + self.ball.movement,
-            Point2::new(0.0, 600.0), Point2::new(800.0, 600.0)
-        );
+        let mut newpos = self.ball.position + self.ball.movement;
+        let mut next_move = self.ball.movement;
 
-        if intersects {
-            next_move = reflect_vector(self.ball.movement, Vector2::new(0.0, 1.0));
+        for wall in self.walls.iter() {
+            let offset = wall.n * -self.ball.radius;
+            let (intersects, offset_intersect_point) = find_intersection(
+                self.ball.position + offset, self.ball.position + self.ball.movement + offset,
+                wall.a, wall.b
+            );
 
-            let travelled = intersect_point - self.ball.position;
-            let remaining = travelled.norm() / self.ball.movement.norm();
-            // let remaining = (intersect_point - self.ball.position) * self.ball.movement;
-            //newpos = Point2::new(200.0, 200.0);
-            newpos = intersect_point + next_move * remaining;
-        } else {
-            next_move = self.ball.movement;
-            newpos = self.ball.position + self.ball.movement;
+            if intersects {
+                let intersect_point = offset_intersect_point - offset;
+
+                next_move = reflect_vector(self.ball.movement, wall.n);
+
+                let travelled = intersect_point - self.ball.position;
+                let remaining = travelled.norm() / self.ball.movement.norm();
+
+                newpos = intersect_point + next_move * remaining;
+
+                break;
+            }
         }
 
         self.ball = Ball {
@@ -136,7 +169,7 @@ impl EventHandler for CrasballGame {
             graphics::DrawMode::fill(),
             self.ball.position,
             self.ball.radius,
-            0.1,
+            0.5,
             graphics::BLACK,
         )?;
 
