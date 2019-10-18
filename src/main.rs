@@ -2,6 +2,8 @@ use ggez::{graphics, Context, ContextBuilder, GameResult};
 use ggez::conf::{WindowMode};
 use ggez::event::{self, EventHandler};
 use nalgebra::{Point2, Vector2};
+use rand::{random};
+use std::f32::consts::{PI};
 
 const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
 
@@ -31,7 +33,7 @@ struct Ball {
 }
 
 struct CrasballGame {
-    ball: Ball,
+    balls: Vec<Ball>,
     walls: Vec<Wall>
 }
 
@@ -45,11 +47,18 @@ impl CrasballGame {
     pub fn new(_ctx: &mut Context) -> CrasballGame {
         // Load/create resources such as images here.
         CrasballGame {
-            ball: Ball {
-                radius: 50.0,
-                position: Point2::new(200.0, 200.0),
-                movement: Vector2::new(1.0, 1.0)
-            },
+            balls: vec![
+                Ball {
+                    radius: 20.0,
+                    position: Point2::new(200.0, 200.0),
+                    movement: random_ball_movement()
+                },
+                Ball {
+                    radius: 20.0,
+                    position: Point2::new(200.0, 200.0),
+                    movement: random_ball_movement()
+                },
+            ],
             walls: vec![
                 Wall {
                     a: Point2::new(0.0, 0.0),
@@ -74,6 +83,11 @@ impl CrasballGame {
             ]
         }
     }
+}
+
+fn random_ball_movement() -> Vector2<f32> {
+    let angle = 2.0 * PI * random::<f32>();
+    Vector2::new(angle.sin(), angle.cos())
 }
 
 // // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines 
@@ -128,35 +142,36 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
 impl EventHandler for CrasballGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
 
-        let mut newpos = self.ball.position + self.ball.movement;
-        let mut next_move = self.ball.movement;
+        for ball in self.balls.iter_mut() {
 
-        for wall in self.walls.iter() {
-            let offset = wall.n * -self.ball.radius;
-            let (intersects, offset_intersect_point) = find_intersection(
-                self.ball.position + offset, self.ball.position + self.ball.movement + offset,
-                wall.a, wall.b
-            );
+            let mut newpos = ball.position + ball.movement;
+            let mut next_move = ball.movement;
 
-            if intersects {
-                let intersect_point = offset_intersect_point - offset;
+            for wall in self.walls.iter() {
+                let offset = wall.n * -ball.radius;
+                let (intersects, offset_intersect_point) = find_intersection(
+                    ball.position + offset, ball.position + ball.movement + offset,
+                    wall.a, wall.b
+                );
 
-                next_move = reflect_vector(self.ball.movement, wall.n);
+                if intersects {
+                    let intersect_point = offset_intersect_point - offset;
 
-                let travelled = intersect_point - self.ball.position;
-                let remaining = travelled.norm() / self.ball.movement.norm();
+                    next_move = reflect_vector(ball.movement, wall.n);
 
-                newpos = intersect_point + next_move * remaining;
+                    let travelled = intersect_point - ball.position;
+                    let remaining = travelled.norm() / ball.movement.norm();
 
-                break;
+                    newpos = intersect_point + next_move * remaining;
+
+                    break;
+                }
             }
-        }
 
-        self.ball = Ball {
-            position: newpos,
-            movement: next_move,
-            ..self.ball
-        };
+            ball.position = newpos;
+            ball.movement = next_move;
+
+        }
 
         Ok(())
     }
@@ -164,16 +179,20 @@ impl EventHandler for CrasballGame {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, graphics::WHITE);
 
-        let circle = graphics::Mesh::new_circle(
-            ctx,
-            graphics::DrawMode::fill(),
-            self.ball.position,
-            self.ball.radius,
-            0.5,
-            graphics::BLACK,
-        )?;
+        for ball in self.balls.iter() {
 
-        graphics::draw(ctx, &circle, (Point2::new(0.0, 0.0),))?;
+            let circle = graphics::Mesh::new_circle(
+                ctx,
+                graphics::DrawMode::fill(),
+                ball.position,
+                ball.radius,
+                0.5,
+                graphics::BLACK,
+            )?;
+
+            graphics::draw(ctx, &circle, (Point2::new(0.0, 0.0),))?;
+
+        }
 
         graphics::present(ctx)
     }
