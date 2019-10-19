@@ -1,4 +1,5 @@
-use ggez::{graphics, Context, ContextBuilder, GameResult};
+use ggez::{Context, ContextBuilder, GameResult};
+use ggez::graphics::{self, Color};
 use ggez::conf::{WindowMode};
 use ggez::event::{self, EventHandler};
 use ggez::timer;
@@ -57,8 +58,11 @@ impl CrasballGame {
                 },
                 Ball {
                     radius: 20.0,
-                    position: random_ball_position(20.0),
-                    movement: random_ball_movement(100.0)
+                    position: Point2::new(350.0, 255.0),
+                    movement: Vector2::new(
+                        (5000.0 as f32).sqrt(),
+                        (5000.0 as f32).sqrt()
+                    )
                 },
                 Ball {
                     radius: 20.0,
@@ -91,6 +95,23 @@ impl CrasballGame {
                     a: Point2::new(0.0, 0.0),
                     b: Point2::new(0.0, 600.0),
                     n: Vector2::new(1.0, 0.0)
+                },
+
+                // Test wall
+                Wall {
+                    a: Point2::new(390.0, 300.0),
+                    b: Point2::new(410.0, 300.0),
+                    n: Vector2::new(0.0, -1.0)
+                },
+                Wall {
+                    a: Point2::new(410.0, 300.0),
+                    b: Point2::new(410.0, 600.0),
+                    n: Vector2::new(1.0, 0.0)
+                },
+                Wall {
+                    a: Point2::new(390.0, 300.0),
+                    b: Point2::new(390.0, 600.0),
+                    n: Vector2::new(-1.0, 0.0)
                 }
             ]
         }
@@ -159,7 +180,10 @@ fn find_intersection(
 }
 
 fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
-    i - n * (n.dot(&i) * 2.0)
+    let raw_vector = i - n * (n.dot(&i) * 2.0);
+    let raw_magnitude = raw_vector.norm();
+
+    raw_vector * (100.0 / raw_magnitude)
 }
 
 impl EventHandler for CrasballGame {
@@ -175,6 +199,24 @@ impl EventHandler for CrasballGame {
                 let mut next_move = ball.movement;
 
                 for wall in self.walls.iter() {
+
+                    let distance_to_a = (wall.a - newpos).norm();
+
+                    if distance_to_a < ball.radius {
+
+                        let overshoot = ball.radius - distance_to_a;
+                        let remaining = overshoot / to_move.norm();
+
+                        newpos = newpos - to_move * remaining;
+
+                        next_move = reflect_vector(ball.movement, newpos - wall.a);
+
+                        newpos = newpos + next_move * remaining * delta;
+
+                        break;
+
+                    }
+
                     let offset = wall.n * -ball.radius;
                     let (intersects, offset_intersect_point) = find_intersection(
                         ball.position + offset, ball.position + to_move + offset,
@@ -206,6 +248,20 @@ impl EventHandler for CrasballGame {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, graphics::WHITE);
 
+        let rectangle = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect {
+                x: 390.0,
+                y: 300.0,
+                w: 20.0,
+                h: 300.0
+            },
+            graphics::BLACK,
+        )?;
+
+        graphics::draw(ctx, &rectangle, graphics::DrawParam::default())?;
+
         for ball in self.balls.iter() {
 
             let circle = graphics::Mesh::new_circle(
@@ -214,10 +270,10 @@ impl EventHandler for CrasballGame {
                 ball.position,
                 ball.radius,
                 0.5,
-                graphics::BLACK,
+                Color::new(1.0, 0.0, 0.0, 1.0),
             )?;
 
-            graphics::draw(ctx, &circle, (Point2::new(0.0, 0.0),))?;
+            graphics::draw(ctx, &circle, graphics::DrawParam::default())?;
 
         }
 
