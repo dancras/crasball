@@ -1,10 +1,12 @@
 use ggez::{graphics, Context, ContextBuilder, GameResult};
 use ggez::conf::{WindowMode};
 use ggez::event::{self, EventHandler};
+use ggez::timer;
 use nalgebra::{Point2, Vector2};
 use rand::{random};
 use std::f32::consts::{PI};
 
+const DESIRED_FPS: u32 = 60;
 const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
 
 fn main() {
@@ -50,14 +52,24 @@ impl CrasballGame {
             balls: vec![
                 Ball {
                     radius: 20.0,
-                    position: Point2::new(200.0, 200.0),
-                    movement: random_ball_movement()
+                    position: random_ball_position(20.0),
+                    movement: random_ball_movement(100.0)
                 },
                 Ball {
                     radius: 20.0,
-                    position: Point2::new(200.0, 200.0),
-                    movement: random_ball_movement()
+                    position: random_ball_position(20.0),
+                    movement: random_ball_movement(100.0)
                 },
+                Ball {
+                    radius: 20.0,
+                    position: random_ball_position(20.0),
+                    movement: random_ball_movement(100.0)
+                },
+                Ball {
+                    radius: 20.0,
+                    position: random_ball_position(20.0),
+                    movement: random_ball_movement(100.0)
+                }
             ],
             walls: vec![
                 Wall {
@@ -85,9 +97,20 @@ impl CrasballGame {
     }
 }
 
-fn random_ball_movement() -> Vector2<f32> {
+fn random_ball_position(radius: f32) -> Point2<f32> {
+
+    Point2::new(
+        radius + random::<f32>() * (SCREEN_SIZE.0 - 2.0 * radius),
+        radius + random::<f32>() * (SCREEN_SIZE.1 - 2.0 * radius)
+    )
+}
+
+fn random_ball_movement(velocity: f32) -> Vector2<f32> {
     let angle = 2.0 * PI * random::<f32>();
-    Vector2::new(angle.sin(), angle.cos())
+    let base_movement = Vector2::new(angle.sin(), angle.cos());
+    let base_magnitude = base_movement.norm();
+
+    base_movement * (velocity / base_magnitude)
 }
 
 // // Returns 1 if the lines intersect, otherwise 0. In addition, if the lines 
@@ -140,37 +163,41 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
 }
 
 impl EventHandler for CrasballGame {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
 
-        for ball in self.balls.iter_mut() {
+        while timer::check_update_time(ctx, DESIRED_FPS) {
+            let delta = 1.0 / (DESIRED_FPS as f32);
 
-            let mut newpos = ball.position + ball.movement;
-            let mut next_move = ball.movement;
+            for ball in self.balls.iter_mut() {
 
-            for wall in self.walls.iter() {
-                let offset = wall.n * -ball.radius;
-                let (intersects, offset_intersect_point) = find_intersection(
-                    ball.position + offset, ball.position + ball.movement + offset,
-                    wall.a, wall.b
-                );
+                let to_move = ball.movement * delta;
+                let mut newpos = ball.position + to_move;
+                let mut next_move = ball.movement;
 
-                if intersects {
-                    let intersect_point = offset_intersect_point - offset;
+                for wall in self.walls.iter() {
+                    let offset = wall.n * -ball.radius;
+                    let (intersects, offset_intersect_point) = find_intersection(
+                        ball.position + offset, ball.position + to_move + offset,
+                        wall.a, wall.b
+                    );
+                    if intersects {
+                        let intersect_point = offset_intersect_point - offset;
 
-                    next_move = reflect_vector(ball.movement, wall.n);
+                        next_move = reflect_vector(ball.movement, wall.n);
 
-                    let travelled = intersect_point - ball.position;
-                    let remaining = travelled.norm() / ball.movement.norm();
+                        let travelled = intersect_point - ball.position;
+                        let remaining = travelled.norm() / to_move.norm();
 
-                    newpos = intersect_point + next_move * remaining;
+                        newpos = intersect_point + next_move * remaining * delta;
 
-                    break;
+                        break;
+                    }
                 }
+
+                ball.position = newpos;
+                ball.movement = next_move;
+
             }
-
-            ball.position = newpos;
-            ball.movement = next_move;
-
         }
 
         Ok(())
