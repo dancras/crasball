@@ -165,8 +165,9 @@ impl EventHandler for CrasballGame {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             let delta = 1.0 / (DESIRED_FPS as f32);
+            let mut moved_balls: Vec<&mut Ball> = Vec::new();
 
-            for ball in self.balls.iter_mut() {
+            for ball in &mut self.balls {
 
                 let to_move = ball.movement * delta;
                 let mut newpos = ball.position + to_move;
@@ -212,6 +213,23 @@ impl EventHandler for CrasballGame {
 
                 ball.position = newpos;
                 ball.movement = next_move;
+
+                for target_ball in &mut moved_balls {
+
+                    let b1_to_b2 = ball.position - target_ball.position;
+
+                    if b1_to_b2.norm() < ball.radius + target_ball.radius {
+
+                        let b2_to_b1 = target_ball.position - ball.position;
+
+                        ball.movement = reflect_vector(ball.movement, b2_to_b1);
+                        target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
+
+                    }
+
+                }
+
+                moved_balls.push(ball);
 
             }
         }
