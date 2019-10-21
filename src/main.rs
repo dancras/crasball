@@ -214,16 +214,25 @@ impl EventHandler for CrasballGame {
                 ball.position = newpos;
                 ball.movement = next_move;
 
+                // TODO: Fix issue with balls colliding when they are moving in the same direction
+                //       I have a feeling using refraction about the normal could work for the ball
+                //       whose movement does not intersect with the tangent at the collision point
+                // TODO *next: Make it easier to scaffold tests of various collision scenarios
                 for target_ball in &mut moved_balls {
 
                     let b1_to_b2 = ball.position - target_ball.position;
+                    let distance_apart = b1_to_b2.norm();
 
-                    if b1_to_b2.norm() < ball.radius + target_ball.radius {
+                    if distance_apart < ball.radius + target_ball.radius {
 
+                        let correction = (ball.radius + target_ball.radius - distance_apart) / 2.0;
                         let b2_to_b1 = target_ball.position - ball.position;
 
                         ball.movement = reflect_vector(ball.movement, b2_to_b1);
+                        ball.position = ball.position + ball.movement * (correction / ball.movement.norm());
+
                         target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
+                        target_ball.position = target_ball.position + target_ball.movement * (correction / target_ball.movement.norm());
 
                     }
 
