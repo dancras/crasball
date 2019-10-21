@@ -1,137 +1,24 @@
-use ggez::{Context, ContextBuilder, GameResult};
+use ggez::{timer, Context, GameResult};
 use ggez::graphics::{self, Color};
-use ggez::conf::{WindowMode};
-use ggez::event::{self, EventHandler};
-use ggez::timer;
 use nalgebra::{Point2, Vector2};
-use rand::{random};
-use std::f32::consts::{PI};
 
 const DESIRED_FPS: u32 = 60;
-const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
 
-fn main() {
-    // Make a Context.
-    let (mut ctx, mut event_loop) = ContextBuilder::new("dancras/crasball", "dancras")
-        .window_mode(WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
-        .build()
-        .expect("aieee, could not create ggez context!");
-
-    // Create an instance of your event handler.
-    // Usually, you should provide it with the Context object to
-    // use when setting your game up.
-    let mut my_game = CrasballGame::new(&mut ctx);
-
-    // Run!
-    match event::run(&mut ctx, &mut event_loop, &mut my_game) {
-        Ok(_) => println!("Exited cleanly."),
-        Err(e) => println!("Error occured: {}", e)
-    }
+pub struct Ball {
+    pub radius: f32,
+    pub position: Point2<f32>,
+    pub movement: Vector2<f32>
 }
 
-struct Ball {
-    radius: f32,
-    position: Point2<f32>,
-    movement: Vector2<f32>
+pub struct GameState {
+    pub balls: Vec<Ball>,
+    pub walls: Vec<Wall>
 }
 
-struct CrasballGame {
-    balls: Vec<Ball>,
-    walls: Vec<Wall>
-}
-
-struct Wall {
-    a: Point2<f32>,
-    b: Point2<f32>,
-    n: Vector2<f32>
-}
-
-impl CrasballGame {
-    pub fn new(_ctx: &mut Context) -> CrasballGame {
-        // Load/create resources such as images here.
-        CrasballGame {
-            balls: vec![
-                Ball {
-                    radius: 20.0,
-                    position: random_ball_position(20.0),
-                    movement: random_ball_movement(100.0)
-                },
-                Ball {
-                    radius: 20.0,
-                    position: Point2::new(350.0, 255.0),
-                    movement: Vector2::new(
-                        (5000.0 as f32).sqrt(),
-                        (5000.0 as f32).sqrt()
-                    )
-                },
-                Ball {
-                    radius: 20.0,
-                    position: random_ball_position(20.0),
-                    movement: random_ball_movement(100.0)
-                },
-                Ball {
-                    radius: 20.0,
-                    position: random_ball_position(20.0),
-                    movement: random_ball_movement(100.0)
-                }
-            ],
-            walls: vec![
-                Wall {
-                    a: Point2::new(0.0, 0.0),
-                    b: Point2::new(800.0, 0.0),
-                    n: Vector2::new(0.0, 1.0)
-                },
-                Wall {
-                    a: Point2::new(0.0, 600.0),
-                    b: Point2::new(800.0, 600.0),
-                    n: Vector2::new(0.0, -1.0)
-                },
-                Wall {
-                    a: Point2::new(800.0, 0.0),
-                    b: Point2::new(800.0, 600.0),
-                    n: Vector2::new(-1.0, 0.0)
-                },
-                Wall {
-                    a: Point2::new(0.0, 0.0),
-                    b: Point2::new(0.0, 600.0),
-                    n: Vector2::new(1.0, 0.0)
-                },
-
-                // Test wall
-                Wall {
-                    a: Point2::new(390.0, 300.0),
-                    b: Point2::new(410.0, 300.0),
-                    n: Vector2::new(0.0, -1.0)
-                },
-                Wall {
-                    a: Point2::new(410.0, 300.0),
-                    b: Point2::new(410.0, 600.0),
-                    n: Vector2::new(1.0, 0.0)
-                },
-                Wall {
-                    a: Point2::new(390.0, 300.0),
-                    b: Point2::new(390.0, 600.0),
-                    n: Vector2::new(-1.0, 0.0)
-                }
-            ]
-        }
-    }
-}
-
-fn random_ball_position(radius: f32) -> Point2<f32> {
-
-    Point2::new(
-        radius + random::<f32>() * (SCREEN_SIZE.0 - 2.0 * radius),
-        radius + random::<f32>() * (SCREEN_SIZE.1 - 2.0 * radius)
-    )
-}
-
-fn random_ball_movement(velocity: f32) -> Vector2<f32> {
-    let angle = 2.0 * PI * random::<f32>();
-    let base_movement = Vector2::new(angle.sin(), angle.cos());
-    let base_magnitude = base_movement.norm();
-
-    base_movement * (velocity / base_magnitude)
+pub struct Wall {
+    pub a: Point2<f32>,
+    pub b: Point2<f32>,
+    pub n: Vector2<f32>
 }
 
 fn find_intersection(
@@ -160,9 +47,8 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
     raw_vector * (100.0 / raw_magnitude)
 }
 
-impl EventHandler for CrasballGame {
-    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-
+impl GameState {
+    pub fn update(&mut self, ctx: &mut Context) {
         while timer::check_update_time(ctx, DESIRED_FPS) {
             let delta = 1.0 / (DESIRED_FPS as f32);
             let mut moved_balls: Vec<&mut Ball> = Vec::new();
@@ -241,13 +127,9 @@ impl EventHandler for CrasballGame {
 
             }
         }
-
-        Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::clear(ctx, graphics::WHITE);
-
+    pub fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let rectangle = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
@@ -277,6 +159,6 @@ impl EventHandler for CrasballGame {
 
         }
 
-        graphics::present(ctx)
+        Ok(())
     }
 }
