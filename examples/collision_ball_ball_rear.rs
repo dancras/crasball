@@ -1,10 +1,11 @@
-use ggez::{Context, ContextBuilder, GameResult};
+use ggez::{timer, Context, ContextBuilder, GameResult};
 use ggez::graphics;
 use ggez::conf::{WindowMode};
 use ggez::event::{self, EventHandler, KeyCode, KeyMods};
 use nalgebra::{Point2, Vector2};
 use crasball::game::{Ball,GameState};
 
+const DESIRED_FPS: u32 = 60;
 const SCREEN_SIZE: (f32, f32) = (400.0, 400.0);
 
 fn main() {
@@ -37,7 +38,7 @@ fn create_initial_game_state() -> GameState {
             },
             Ball {
                 radius: 20.0,
-                position: Point2::new(141.0, 200.0),
+                position: Point2::new(141.0, 150.0),
                 movement: Vector2::new(
                     (5000.0 as f32).sqrt(),
                     (5000.0 as f32).sqrt()
@@ -68,8 +69,12 @@ impl EventHandler for CrasballGame {
     }
 
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        if !self.is_paused {
-            self.state.update(ctx);
+
+        while timer::check_update_time(ctx, DESIRED_FPS) {
+            let delta = 1.0 / (DESIRED_FPS as f32);
+            if !self.is_paused {
+                self.state.update(delta);
+            }
         }
 
         Ok(())

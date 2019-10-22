@@ -1,8 +1,6 @@
-use ggez::{timer, Context, GameResult};
+use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
 use nalgebra::{Point2, Vector2};
-
-const DESIRED_FPS: u32 = 60;
 
 pub struct Ball {
     pub radius: f32,
@@ -48,84 +46,81 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
 }
 
 impl GameState {
-    pub fn update(&mut self, ctx: &mut Context) {
-        while timer::check_update_time(ctx, DESIRED_FPS) {
-            let delta = 1.0 / (DESIRED_FPS as f32);
-            let mut moved_balls: Vec<&mut Ball> = Vec::new();
+    pub fn update(&mut self, delta: f32) {
+        let mut moved_balls: Vec<&mut Ball> = Vec::new();
 
-            for ball in &mut self.balls {
+        for ball in &mut self.balls {
 
-                let to_move = ball.movement * delta;
-                let mut newpos = ball.position + to_move;
-                let mut next_move = ball.movement;
+            let to_move = ball.movement * delta;
+            let mut newpos = ball.position + to_move;
+            let mut next_move = ball.movement;
 
-                for wall in self.walls.iter() {
+            for wall in self.walls.iter() {
 
-                    let distance_to_a = (wall.a - newpos).norm();
+                let distance_to_a = (wall.a - newpos).norm();
 
-                    if distance_to_a < ball.radius {
+                if distance_to_a < ball.radius {
 
-                        let overshoot = ball.radius - distance_to_a;
-                        let remaining = overshoot / to_move.norm();
+                    let overshoot = ball.radius - distance_to_a;
+                    let remaining = overshoot / to_move.norm();
 
-                        newpos = newpos - to_move * remaining;
+                    newpos = newpos - to_move * remaining;
 
-                        next_move = reflect_vector(ball.movement, newpos - wall.a);
+                    next_move = reflect_vector(ball.movement, newpos - wall.a);
 
-                        newpos = newpos + next_move * remaining * delta;
+                    newpos = newpos + next_move * remaining * delta;
 
-                        break;
-
-                    }
-
-                    let offset = wall.n * -ball.radius;
-                    let (intersects, offset_intersect_point) = find_intersection(
-                        ball.position + offset, ball.position + to_move + offset,
-                        wall.a, wall.b
-                    );
-                    if intersects {
-                        let intersect_point = offset_intersect_point - offset;
-
-                        next_move = reflect_vector(ball.movement, wall.n);
-
-                        let travelled = intersect_point - ball.position;
-                        let remaining = travelled.norm() / to_move.norm();
-
-                        newpos = intersect_point + next_move * remaining * delta;
-
-                        break;
-                    }
-                }
-
-                ball.position = newpos;
-                ball.movement = next_move;
-
-                // TODO: Fix issue with balls colliding when they are moving in the same direction
-                //       I have a feeling using refraction about the normal could work for the ball
-                //       whose movement does not intersect with the tangent at the collision point
-                for target_ball in &mut moved_balls {
-
-                    let b1_to_b2 = ball.position - target_ball.position;
-                    let distance_apart = b1_to_b2.norm();
-
-                    if distance_apart < ball.radius + target_ball.radius {
-
-                        let correction = (ball.radius + target_ball.radius - distance_apart) / 2.0;
-                        let b2_to_b1 = target_ball.position - ball.position;
-
-                        ball.movement = reflect_vector(ball.movement, b2_to_b1);
-                        ball.position = ball.position + ball.movement * (correction / ball.movement.norm());
-
-                        target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
-                        target_ball.position = target_ball.position + target_ball.movement * (correction / target_ball.movement.norm());
-
-                    }
+                    break;
 
                 }
 
-                moved_balls.push(ball);
+                let offset = wall.n * -ball.radius;
+                let (intersects, offset_intersect_point) = find_intersection(
+                    ball.position + offset, ball.position + to_move + offset,
+                    wall.a, wall.b
+                );
+                if intersects {
+                    let intersect_point = offset_intersect_point - offset;
+
+                    next_move = reflect_vector(ball.movement, wall.n);
+
+                    let travelled = intersect_point - ball.position;
+                    let remaining = travelled.norm() / to_move.norm();
+
+                    newpos = intersect_point + next_move * remaining * delta;
+
+                    break;
+                }
+            }
+
+            ball.position = newpos;
+            ball.movement = next_move;
+
+            // TODO: Fix issue with balls colliding when they are moving in the same direction
+            //       I have a feeling using refraction about the normal could work for the ball
+            //       whose movement does not intersect with the tangent at the collision point
+            for target_ball in &mut moved_balls {
+
+                let b1_to_b2 = ball.position - target_ball.position;
+                let distance_apart = b1_to_b2.norm();
+
+                if distance_apart < ball.radius + target_ball.radius {
+
+                    let correction = (ball.radius + target_ball.radius - distance_apart) / 2.0;
+                    let b2_to_b1 = target_ball.position - ball.position;
+
+                    ball.movement = reflect_vector(ball.movement, b2_to_b1);
+                    ball.position = ball.position + ball.movement * (correction / ball.movement.norm());
+
+                    target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
+                    target_ball.position = target_ball.position + target_ball.movement * (correction / target_ball.movement.norm());
+
+                }
 
             }
+
+            moved_balls.push(ball);
+
         }
     }
 
