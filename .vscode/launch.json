@@ -7,8 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
+            "name": "Crasball",
             "program": "${workspaceFolder}/target/debug/crasball",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Ball to Ball Rear Collision",
+            "program": "${workspaceFolder}/target/debug/examples/collision_ball_ball_rear",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
