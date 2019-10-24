@@ -45,6 +45,17 @@ fn reflect_vector(i: Vector2<f32>, n: Vector2<f32>) -> Vector2<f32> {
     raw_vector * (100.0 / raw_magnitude)
 }
 
+fn elastic_collision_vector(
+    v1: Vector2<f32>, x1: Point2<f32>,
+    v2: Vector2<f32>, x2: Point2<f32>
+) -> Vector2<f32> {
+    let x2_to_x1 = x1 - x2;
+    let raw_vector = v1 - ((v1 - v2).dot(&x2_to_x1) / x2_to_x1.norm().powi(2)) * x2_to_x1;
+    let raw_magnitude = raw_vector.norm();
+
+    raw_vector * (100.0 / raw_magnitude)
+}
+
 impl GameState {
     pub fn update(&mut self, delta: f32) {
         let mut moved_balls: Vec<&mut Ball> = Vec::new();
@@ -99,22 +110,23 @@ impl GameState {
             // TODO: Fix issue with balls colliding when they are moving in the same direction
             //       I have a feeling using refraction about the normal could work for the ball
             //       whose movement does not intersect with the tangent at the collision point
-            for target_ball in &mut moved_balls {
+            for b2 in &mut moved_balls {
 
-                let b1_to_b2 = ball.position - target_ball.position;
-                let distance_apart = b1_to_b2.norm();
+                let ball_to_b2 = ball.position - b2.position;
+                let distance_apart = ball_to_b2.norm();
 
-                if distance_apart < ball.radius + target_ball.radius {
+                if distance_apart < ball.radius + b2.radius {
 
-                    let correction = (ball.radius + target_ball.radius - distance_apart) / 2.0;
-                    let b2_to_b1 = target_ball.position - ball.position;
+                    let correction = (ball.radius + b2.radius - distance_apart) / 2.0;
 
-                    ball.movement = reflect_vector(ball.movement, b2_to_b1);
+                    let new_ball_movement = elastic_collision_vector(ball.movement, ball.position, b2.movement, b2.position);
+                    let new_b2_movement = elastic_collision_vector(b2.movement, b2.position, ball.movement, ball.position);
+
+                    ball.movement = new_ball_movement;
                     ball.position = ball.position + ball.movement * (correction / ball.movement.norm());
 
-                    target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
-                    target_ball.position = target_ball.position + target_ball.movement * (correction / target_ball.movement.norm());
-
+                    b2.movement = new_b2_movement;
+                    b2.position = b2.position + b2.movement * (correction / b2.movement.norm());
                 }
 
             }

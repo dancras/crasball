@@ -227,7 +227,7 @@ impl EventHandler for CrasballGame {
                         let correction = (ball.radius + target_ball.radius - distance_apart) / 2.0;
                         let b2_to_b1 = target_ball.position - ball.position;
 
-                        ball.movement = reflect_vector(ball.movement, b2_to_b1);
+                        ball.movement = reflect_vector(ball.movement, b1_to_b2);
                         ball.position = ball.position + ball.movement * (correction / ball.movement.norm());
 
                         target_ball.movement = reflect_vector(target_ball.movement, b1_to_b2);
