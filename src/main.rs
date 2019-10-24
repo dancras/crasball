@@ -1,7 +1,7 @@
-use ggez::{Context, ContextBuilder, GameResult};
-use ggez::graphics::{self, Color};
+use ggez::{graphics, Context, ContextBuilder, GameResult};
 use ggez::conf::{WindowMode};
 use ggez::event::{self, EventHandler};
+use ggez::input::mouse::{self, MouseButton};
 use ggez::timer;
 use nalgebra::{Point2, Vector2};
 use rand::{random};
@@ -30,14 +30,23 @@ fn main() {
     }
 }
 
+enum CursorDirection {
+    Horizontal,
+    Vertical
+}
+
 struct CrasballGame {
+    cursor_direction: CursorDirection,
     state: GameState
 }
 
 impl CrasballGame {
-    pub fn new(_ctx: &mut Context) -> CrasballGame {
+    pub fn new(ctx: &mut Context) -> CrasballGame {
         // Load/create resources such as images here.
+        mouse::set_cursor_type(ctx, mouse::MouseCursor::NsResize);
+
         CrasballGame {
+            cursor_direction: CursorDirection::Vertical,
             state: GameState {
                 balls: vec![
                     Ball {
@@ -125,6 +134,21 @@ fn random_ball_movement(velocity: f32) -> Vector2<f32> {
 }
 
 impl EventHandler for CrasballGame {
+
+    fn mouse_button_down_event(
+        &mut self, ctx: &mut Context, button: MouseButton, _x: f32, _y: f32
+    ) {
+        if let MouseButton::Right = button {
+            if let CursorDirection::Vertical = self.cursor_direction {
+                self.cursor_direction = CursorDirection::Horizontal;
+                mouse::set_cursor_type(ctx, mouse::MouseCursor::NsResize);
+            } else {
+                self.cursor_direction = CursorDirection::Vertical;
+                mouse::set_cursor_type(ctx, mouse::MouseCursor::EwResize);
+            }
+        }
+    }
+
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
