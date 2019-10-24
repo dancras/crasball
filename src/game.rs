@@ -10,10 +10,10 @@ pub struct Ball {
 
 pub struct GameState {
     pub balls: Vec<Ball>,
-    pub walls: Vec<Wall>
+    pub edges: Vec<Edge>
 }
 
-pub struct Wall {
+pub struct Edge {
     pub a: Point2<f32>,
     pub b: Point2<f32>,
     pub n: Vector2<f32>
@@ -66,9 +66,9 @@ impl GameState {
             let mut newpos = ball.position + to_move;
             let mut next_move = ball.movement;
 
-            for wall in self.walls.iter() {
+            for edge in self.edges.iter() {
 
-                let distance_to_a = (wall.a - newpos).norm();
+                let distance_to_a = (edge.a - newpos).norm();
 
                 if distance_to_a < ball.radius {
 
@@ -77,7 +77,7 @@ impl GameState {
 
                     newpos = newpos - to_move * remaining;
 
-                    next_move = reflect_vector(ball.movement, newpos - wall.a);
+                    next_move = reflect_vector(ball.movement, newpos - edge.a);
 
                     newpos = newpos + next_move * remaining * delta;
 
@@ -85,15 +85,15 @@ impl GameState {
 
                 }
 
-                let offset = wall.n * -ball.radius;
+                let offset = edge.n * -ball.radius;
                 let (intersects, offset_intersect_point) = find_intersection(
                     ball.position + offset, ball.position + to_move + offset,
-                    wall.a, wall.b
+                    edge.a, edge.b
                 );
                 if intersects {
                     let intersect_point = offset_intersect_point - offset;
 
-                    next_move = reflect_vector(ball.movement, wall.n);
+                    next_move = reflect_vector(ball.movement, edge.n);
 
                     let travelled = intersect_point - ball.position;
                     let remaining = travelled.norm() / to_move.norm();

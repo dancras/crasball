@@ -45,7 +45,7 @@ fn create_initial_game_state() -> GameState {
                 )
             }
         ],
-        walls: Vec::new()
+        edges: Vec::new()
     }
 }
 

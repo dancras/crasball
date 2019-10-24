@@ -6,7 +6,7 @@ use ggez::timer;
 use nalgebra::{Point2, Vector2};
 use rand::{random};
 use std::f32::consts::{PI};
-use crasball::game::{Ball,GameState, Wall};
+use crasball::game::{Ball,GameState, Edge};
 
 const DESIRED_FPS: u32 = 60;
 const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
@@ -73,40 +73,40 @@ impl CrasballGame {
                         movement: random_ball_movement(100.0)
                     }
                 ],
-                walls: vec![
-                    Wall {
+                edges: vec![
+                    Edge {
                         a: Point2::new(0.0, 0.0),
                         b: Point2::new(800.0, 0.0),
                         n: Vector2::new(0.0, 1.0)
                     },
-                    Wall {
+                    Edge {
                         a: Point2::new(0.0, 600.0),
                         b: Point2::new(800.0, 600.0),
                         n: Vector2::new(0.0, -1.0)
                     },
-                    Wall {
+                    Edge {
                         a: Point2::new(800.0, 0.0),
                         b: Point2::new(800.0, 600.0),
                         n: Vector2::new(-1.0, 0.0)
                     },
-                    Wall {
+                    Edge {
                         a: Point2::new(0.0, 0.0),
                         b: Point2::new(0.0, 600.0),
                         n: Vector2::new(1.0, 0.0)
                     },
 
-                    // Test wall
-                    Wall {
+                    // Test edge
+                    Edge {
                         a: Point2::new(390.0, 300.0),
                         b: Point2::new(410.0, 300.0),
                         n: Vector2::new(0.0, -1.0)
                     },
-                    Wall {
+                    Edge {
                         a: Point2::new(410.0, 300.0),
                         b: Point2::new(410.0, 600.0),
                         n: Vector2::new(1.0, 0.0)
                     },
-                    Wall {
+                    Edge {
                         a: Point2::new(390.0, 300.0),
                         b: Point2::new(390.0, 600.0),
                         n: Vector2::new(-1.0, 0.0)
