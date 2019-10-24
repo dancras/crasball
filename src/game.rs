@@ -107,9 +107,6 @@ impl GameState {
             ball.position = newpos;
             ball.movement = next_move;
 
-            // TODO: Fix issue with balls colliding when they are moving in the same direction
-            //       I have a feeling using refraction about the normal could work for the ball
-            //       whose movement does not intersect with the tangent at the collision point
             for b2 in &mut moved_balls {
 
                 let ball_to_b2 = ball.position - b2.position;
