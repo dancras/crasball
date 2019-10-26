@@ -1,6 +1,6 @@
 use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
-use nalgebra::{Point2, Vector2};
+use nalgebra::{convert, Point2, Vector2};
 
 pub struct Ball {
     pub radius: f32,
@@ -14,8 +14,8 @@ pub struct GameState {
 }
 
 pub struct Edge {
-    pub a: Point2<f32>,
-    pub b: Point2<f32>,
+    pub a: Point2<i16>,
+    pub b: Point2<i16>,
     pub n: Vector2<f32>
 }
 
@@ -68,7 +68,10 @@ impl GameState {
 
             for edge in self.edges.iter() {
 
-                let distance_to_a = (edge.a - newpos).norm();
+                let edge_a: Point2<f32> = convert(edge.a);
+                let edge_b: Point2<f32> = convert(edge.b);
+
+                let distance_to_a = (edge_a - newpos).norm();
 
                 if distance_to_a < ball.radius {
 
@@ -77,7 +80,7 @@ impl GameState {
 
                     newpos = newpos - to_move * remaining;
 
-                    next_move = reflect_vector(ball.movement, newpos - edge.a);
+                    next_move = reflect_vector(ball.movement, newpos - edge_a);
 
                     newpos = newpos + next_move * remaining * delta;
 
@@ -88,7 +91,7 @@ impl GameState {
                 let offset = edge.n * -ball.radius;
                 let (intersects, offset_intersect_point) = find_intersection(
                     ball.position + offset, ball.position + to_move + offset,
-                    edge.a, edge.b
+                    edge_a, edge_b
                 );
                 if intersects {
                     let intersect_point = offset_intersect_point - offset;

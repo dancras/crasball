@@ -75,40 +75,40 @@ impl CrasballGame {
                 ],
                 edges: vec![
                     Edge {
-                        a: Point2::new(0.0, 0.0),
-                        b: Point2::new(800.0, 0.0),
+                        a: Point2::new(0, 0),
+                        b: Point2::new(800, 0),
                         n: Vector2::new(0.0, 1.0)
                     },
                     Edge {
-                        a: Point2::new(0.0, 600.0),
-                        b: Point2::new(800.0, 600.0),
+                        a: Point2::new(0, 600),
+                        b: Point2::new(800, 600),
                         n: Vector2::new(0.0, -1.0)
                     },
                     Edge {
-                        a: Point2::new(800.0, 0.0),
-                        b: Point2::new(800.0, 600.0),
+                        a: Point2::new(800, 0),
+                        b: Point2::new(800, 600),
                         n: Vector2::new(-1.0, 0.0)
                     },
                     Edge {
-                        a: Point2::new(0.0, 0.0),
-                        b: Point2::new(0.0, 600.0),
+                        a: Point2::new(0, 0),
+                        b: Point2::new(0, 600),
                         n: Vector2::new(1.0, 0.0)
                     },
 
                     // Test edge
                     Edge {
-                        a: Point2::new(390.0, 300.0),
-                        b: Point2::new(410.0, 300.0),
+                        a: Point2::new(390, 300),
+                        b: Point2::new(410, 300),
                         n: Vector2::new(0.0, -1.0)
                     },
                     Edge {
-                        a: Point2::new(410.0, 300.0),
-                        b: Point2::new(410.0, 600.0),
+                        a: Point2::new(410, 300),
+                        b: Point2::new(410, 600),
                         n: Vector2::new(1.0, 0.0)
                     },
                     Edge {
-                        a: Point2::new(390.0, 300.0),
-                        b: Point2::new(390.0, 600.0),
+                        a: Point2::new(390, 300),
+                        b: Point2::new(390, 600),
                         n: Vector2::new(-1.0, 0.0)
                     }
                 ]
