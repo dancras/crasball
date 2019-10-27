@@ -33,7 +33,7 @@ fn test_add() {
 //
 
 #[test]
-fn test_add_partial_wall() {
+fn test_add_partial_wall_to_down_facing_edge() {
 
     let initial = LiveArea {
         balls: vec![
@@ -216,6 +216,106 @@ fn test_add_partial_wall_to_left_facing_edge() {
                 },
                 Edge {
                     a: Point2::new(100, 100),
+                    b: Point2::new(0, 100),
+                    n: Vector2::new(0.0, -1.0)
+                },
+                Edge {
+                    a: Point2::new(0, 100),
+                    b: Point2::new(0, 0),
+                    n: Vector2::new(1.0, 0.0)
+                }
+            ]
+        }
+    ];
+
+    assert_eq!(output, expected);
+
+}
+
+#[test]
+fn test_add_partial_wall_to_up_facing_edge() {
+
+    let initial = LiveArea {
+        balls: vec![
+            Ball {
+                radius: 20.0,
+                position: Point2::new(50.0, 50.0),
+                movement: Vector2::new(0.0, 0.0)
+            }
+        ],
+        edges: vec![
+            Edge {
+                a: Point2::new(0, 0),
+                b: Point2::new(100, 0),
+                n: Vector2::new(0.0, 1.0)
+            },
+            Edge {
+                a: Point2::new(100, 0),
+                b: Point2::new(100, 100),
+                n: Vector2::new(-1.0, 0.0)
+            },
+            Edge {
+                a: Point2::new(100, 100),
+                b: Point2::new(0, 100),
+                n: Vector2::new(0.0, -1.0)
+            },
+            Edge {
+                a: Point2::new(0, 100),
+                b: Point2::new(0, 0),
+                n: Vector2::new(1.0, 0.0)
+            }
+        ]
+    };
+
+    let output = initial.add_wall(
+        Point2::new(40, 80),
+        Point2::new(60, 80),
+        Point2::new(60, 100),
+        Point2::new(40, 100),
+    );
+
+    let expected = vec![
+        LiveArea {
+            balls: vec![
+                Ball {
+                    radius: 20.0,
+                    position: Point2::new(50.0, 50.0),
+                    movement: Vector2::new(0.0, 0.0)
+                }
+            ],
+            edges: vec![
+                Edge {
+                    a: Point2::new(0, 0),
+                    b: Point2::new(100, 0),
+                    n: Vector2::new(0.0, 1.0)
+                },
+                Edge {
+                    a: Point2::new(100, 0),
+                    b: Point2::new(100, 100),
+                    n: Vector2::new(-1.0, 0.0)
+                },
+                Edge {
+                    a: Point2::new(100, 100),
+                    b: Point2::new(60, 100),
+                    n: Vector2::new(0.0, -1.0)
+                },
+                Edge {
+                    a: Point2::new(60, 100),
+                    b: Point2::new(60, 80),
+                    n: Vector2::new(1.0, 0.0)
+                },
+                Edge {
+                    a: Point2::new(60, 80),
+                    b: Point2::new(40, 80),
+                    n: Vector2::new(0.0, -1.0)
+                },
+                Edge {
+                    a: Point2::new(40, 80),
+                    b: Point2::new(40, 100),
+                    n: Vector2::new(-1.0, 0.0)
+                },
+                Edge {
+                    a: Point2::new(40, 100),
                     b: Point2::new(0, 100),
                     n: Vector2::new(0.0, -1.0)
                 },
