@@ -1,6 +1,7 @@
 use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
 use nalgebra::{convert, Point2, Vector2};
+use nalgebra::base::coordinates::XY;
 
 #[derive(Debug,PartialEq)]
 pub struct Ball {
@@ -41,7 +42,11 @@ impl LiveArea {
         };
 
         for edge in self.edges {
-            if edge.a.xy().y == edge.b.xy().y && edge.a.xy().y == a.xy().y {
+
+            let XY {x: ax, y: ay} = *edge.a;
+            let XY {x: bx, y: by} = *edge.b;
+
+            if ay == by && ay == a.xy().y {
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
@@ -77,7 +82,7 @@ impl LiveArea {
                         n: edge.n
                     }
                 );
-            } else if edge.a.xy().x == edge.b.xy().x && edge.a.xy().x == b.xy().x {
+            } else if ax == bx && ax == b.xy().x {
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
