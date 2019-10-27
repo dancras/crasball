@@ -2,6 +2,7 @@ use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
 use nalgebra::{convert, Point2, Vector2};
 
+#[derive(Debug,PartialEq)]
 pub struct Ball {
     pub radius: f32,
     pub position: Point2<f32>,
@@ -13,6 +14,79 @@ pub struct GameState {
     pub edges: Vec<Edge>
 }
 
+#[derive(Debug,PartialEq)]
+pub struct LiveArea {
+    pub balls: Vec<Ball>,
+    pub edges: Vec<Edge>
+}
+
+// fn is_point_on_edge(p: Point2<i16>, e: Edge) -> bool {
+//     let v1 = p - e.a;
+//     let v2 = e.b - e.a;
+
+//     v1.cross(&v2) == 0.0
+// }
+
+impl LiveArea {
+    pub fn add_wall(
+        self,
+        a: Point2<i16>,
+        b: Point2<i16>,
+        c: Point2<i16>,
+        d: Point2<i16>
+    ) -> Vec<LiveArea> {
+        let mut current_area = LiveArea {
+            balls: self.balls,
+            edges: Vec::default()
+        };
+
+        for edge in self.edges {
+            if edge.a.xy().y == edge.b.xy().y && edge.a.xy().y == a.xy().y {
+                current_area.edges.push(
+                    Edge {
+                        a: edge.a,
+                        b: a,
+                        n: edge.n
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: a,
+                        b: d,
+                        n: Vector2::new(-1.0, 0.0)
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: d,
+                        b: c,
+                        n: edge.n
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: c,
+                        b: b,
+                        n: Vector2::new(1.0, 0.0)
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: b,
+                        b: edge.b,
+                        n: edge.n
+                    }
+                );
+            } else {
+                current_area.edges.push(edge)
+            }
+        }
+
+        vec![current_area]
+    }
+}
+
+#[derive(Debug,PartialEq)]
 pub struct Edge {
     pub a: Point2<i16>,
     pub b: Point2<i16>,
