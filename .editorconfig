@@ -6,6 +6,7 @@ insert_final_newline = true
 
 [*.{rs,toml}]
 charset = utf-8
+trim_trailing_whitespace = true
 
 [*.rs]
 indent_style = space
