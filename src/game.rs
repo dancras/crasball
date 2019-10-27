@@ -58,7 +58,7 @@ impl LiveArea {
                     Edge {
                         a: a,
                         b: d,
-                        n: Vector2::new(-1.0, 0.0)
+                        n: Facing::Left
                     }
                 );
                 current_area.edges.push(
@@ -72,7 +72,7 @@ impl LiveArea {
                     Edge {
                         a: c,
                         b: b,
-                        n: Vector2::new(1.0, 0.0)
+                        n: Facing::Right
                     }
                 );
                 current_area.edges.push(
@@ -94,7 +94,7 @@ impl LiveArea {
                     Edge {
                         a: b,
                         b: a,
-                        n: Vector2::new(0.0, -1.0)
+                        n: Facing::Up
                     }
                 );
                 current_area.edges.push(
@@ -108,7 +108,7 @@ impl LiveArea {
                     Edge {
                         a: d,
                         b: c,
-                        n: Vector2::new(0.0, 1.0)
+                        n: Facing::Down
                     }
                 );
                 current_area.edges.push(
@@ -130,7 +130,7 @@ impl LiveArea {
                     Edge {
                         a: c,
                         b: b,
-                        n: Vector2::new(1.0, 0.0)
+                        n: Facing::Right
                     }
                 );
                 current_area.edges.push(
@@ -144,7 +144,7 @@ impl LiveArea {
                     Edge {
                         a: a,
                         b: d,
-                        n: Vector2::new(-1.0, 0.0)
+                        n: Facing::Left
                     }
                 );
                 current_area.edges.push(
@@ -167,7 +167,15 @@ impl LiveArea {
 pub struct Edge {
     pub a: Point2<i16>,
     pub b: Point2<i16>,
-    pub n: Vector2<f32>
+    pub n: Facing
+}
+
+#[derive(Clone,Copy,Debug,PartialEq)]
+pub enum Facing {
+    Down,
+    Left,
+    Up,
+    Right
 }
 
 fn find_intersection(
@@ -222,6 +230,13 @@ impl GameState {
                 let edge_a: Point2<f32> = convert(edge.a);
                 let edge_b: Point2<f32> = convert(edge.b);
 
+                let edge_n: Vector2<f32> = match edge.n {
+                    Facing::Down => Vector2::new(0.0, 1.0),
+                    Facing::Left => Vector2::new(-1.0, 0.0),
+                    Facing::Up => Vector2::new(0.0, -1.0),
+                    Facing::Right => Vector2::new(1.0, 0.0)
+                };
+
                 let distance_to_a = (edge_a - newpos).norm();
 
                 if distance_to_a < ball.radius {
@@ -239,7 +254,7 @@ impl GameState {
 
                 }
 
-                let offset = edge.n * -ball.radius;
+                let offset = edge_n * -ball.radius;
                 let (intersects, offset_intersect_point) = find_intersection(
                     ball.position + offset, ball.position + to_move + offset,
                     edge_a, edge_b
@@ -247,7 +262,7 @@ impl GameState {
                 if intersects {
                     let intersect_point = offset_intersect_point - offset;
 
-                    next_move = reflect_vector(ball.movement, edge.n);
+                    next_move = reflect_vector(ball.movement, edge_n);
 
                     let travelled = intersect_point - ball.position;
                     let remaining = travelled.norm() / to_move.norm();

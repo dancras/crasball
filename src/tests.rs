@@ -1,6 +1,6 @@
 use nalgebra::{Point2, Vector2};
 
-use crate::game::{Ball, Edge, LiveArea};
+use crate::game::{Ball, Edge, Facing, LiveArea};
 
 #[test]
 fn test_add() {
@@ -9,14 +9,14 @@ fn test_add() {
             Edge {
                 a: Point2::new(0, 0),
                 b: Point2::new(100, 0),
-                n: Vector2::new(100.0, 100.0)
+                n: Facing::Down
             }
         ],
         vec![
             Edge {
                 a: Point2::new(0, 0),
                 b: Point2::new(100, 0),
-                n: Vector2::new(100.0, 100.0)
+                n: Facing::Down
             }
         ]
     );
@@ -47,22 +47,22 @@ fn test_add_partial_wall_to_down_facing_edge() {
             Edge {
                 a: Point2::new(0, 0),
                 b: Point2::new(100, 0),
-                n: Vector2::new(0.0, 1.0)
+                n: Facing::Down
             },
             Edge {
                 a: Point2::new(100, 0),
                 b: Point2::new(100, 100),
-                n: Vector2::new(-1.0, 0.0)
+                n: Facing::Left
             },
             Edge {
                 a: Point2::new(100, 100),
                 b: Point2::new(0, 100),
-                n: Vector2::new(0.0, -1.0)
+                n: Facing::Up
             },
             Edge {
                 a: Point2::new(0, 100),
                 b: Point2::new(0, 0),
-                n: Vector2::new(1.0, 0.0)
+                n: Facing::Right
             }
         ]
     };
@@ -87,42 +87,42 @@ fn test_add_partial_wall_to_down_facing_edge() {
                 Edge {
                     a: Point2::new(0, 0),
                     b: Point2::new(40, 0),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(40, 0),
                     b: Point2::new(40, 20),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(40, 20),
                     b: Point2::new(60, 20),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(60, 20),
                     b: Point2::new(60, 0),
-                    n: Vector2::new(1.0, 0.0)
+                    n: Facing::Right
                 },
                 Edge {
                     a: Point2::new(60, 0),
                     b: Point2::new(100, 0),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(100, 0),
                     b: Point2::new(100, 100),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(100, 100),
                     b: Point2::new(0, 100),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(0, 100),
                     b: Point2::new(0, 0),
-                    n: Vector2::new(1.0, 0.0)
+                    n: Facing::Right
                 }
             ]
         }
@@ -147,22 +147,22 @@ fn test_add_partial_wall_to_left_facing_edge() {
             Edge {
                 a: Point2::new(0, 0),
                 b: Point2::new(100, 0),
-                n: Vector2::new(0.0, 1.0)
+                n: Facing::Down
             },
             Edge {
                 a: Point2::new(100, 0),
                 b: Point2::new(100, 100),
-                n: Vector2::new(-1.0, 0.0)
+                n: Facing::Left
             },
             Edge {
                 a: Point2::new(100, 100),
                 b: Point2::new(0, 100),
-                n: Vector2::new(0.0, -1.0)
+                n: Facing::Up
             },
             Edge {
                 a: Point2::new(0, 100),
                 b: Point2::new(0, 0),
-                n: Vector2::new(1.0, 0.0)
+                n: Facing::Right
             }
         ]
     };
@@ -187,42 +187,42 @@ fn test_add_partial_wall_to_left_facing_edge() {
                 Edge {
                     a: Point2::new(0, 0),
                     b: Point2::new(100, 0),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(100, 0),
                     b: Point2::new(100, 40),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(100, 40),
                     b: Point2::new(80, 40),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(80, 40),
                     b: Point2::new(80, 60),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(80, 60),
                     b: Point2::new(100, 60),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(100, 60),
                     b: Point2::new(100, 100),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(100, 100),
                     b: Point2::new(0, 100),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(0, 100),
                     b: Point2::new(0, 0),
-                    n: Vector2::new(1.0, 0.0)
+                    n: Facing::Right
                 }
             ]
         }
@@ -247,22 +247,22 @@ fn test_add_partial_wall_to_up_facing_edge() {
             Edge {
                 a: Point2::new(0, 0),
                 b: Point2::new(100, 0),
-                n: Vector2::new(0.0, 1.0)
+                n: Facing::Down
             },
             Edge {
                 a: Point2::new(100, 0),
                 b: Point2::new(100, 100),
-                n: Vector2::new(-1.0, 0.0)
+                n: Facing::Left
             },
             Edge {
                 a: Point2::new(100, 100),
                 b: Point2::new(0, 100),
-                n: Vector2::new(0.0, -1.0)
+                n: Facing::Up
             },
             Edge {
                 a: Point2::new(0, 100),
                 b: Point2::new(0, 0),
-                n: Vector2::new(1.0, 0.0)
+                n: Facing::Right
             }
         ]
     };
@@ -287,42 +287,42 @@ fn test_add_partial_wall_to_up_facing_edge() {
                 Edge {
                     a: Point2::new(0, 0),
                     b: Point2::new(100, 0),
-                    n: Vector2::new(0.0, 1.0)
+                    n: Facing::Down
                 },
                 Edge {
                     a: Point2::new(100, 0),
                     b: Point2::new(100, 100),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(100, 100),
                     b: Point2::new(60, 100),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(60, 100),
                     b: Point2::new(60, 80),
-                    n: Vector2::new(1.0, 0.0)
+                    n: Facing::Right
                 },
                 Edge {
                     a: Point2::new(60, 80),
                     b: Point2::new(40, 80),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(40, 80),
                     b: Point2::new(40, 100),
-                    n: Vector2::new(-1.0, 0.0)
+                    n: Facing::Left
                 },
                 Edge {
                     a: Point2::new(40, 100),
                     b: Point2::new(0, 100),
-                    n: Vector2::new(0.0, -1.0)
+                    n: Facing::Up
                 },
                 Edge {
                     a: Point2::new(0, 100),
                     b: Point2::new(0, 0),
-                    n: Vector2::new(1.0, 0.0)
+                    n: Facing::Right
                 }
             ]
         }

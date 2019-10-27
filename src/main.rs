@@ -6,7 +6,7 @@ use ggez::timer;
 use nalgebra::{Point2, Vector2};
 use rand::{random};
 use std::f32::consts::{PI};
-use crasball::game::{Ball,GameState, Edge};
+use crasball::game::{Ball, Facing, GameState, Edge};
 
 const DESIRED_FPS: u32 = 60;
 const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
@@ -77,39 +77,39 @@ impl CrasballGame {
                     Edge {
                         a: Point2::new(0, 0),
                         b: Point2::new(800, 0),
-                        n: Vector2::new(0.0, 1.0)
-                    },
-                    Edge {
-                        a: Point2::new(0, 600),
-                        b: Point2::new(800, 600),
-                        n: Vector2::new(0.0, -1.0)
+                        n: Facing::Down
                     },
                     Edge {
                         a: Point2::new(800, 0),
                         b: Point2::new(800, 600),
-                        n: Vector2::new(-1.0, 0.0)
+                        n: Facing::Left
                     },
                     Edge {
-                        a: Point2::new(0, 0),
+                        a: Point2::new(800, 600),
                         b: Point2::new(0, 600),
-                        n: Vector2::new(1.0, 0.0)
+                        n: Facing::Up
+                    },
+                    Edge {
+                        a: Point2::new(0, 600),
+                        b: Point2::new(0, 0),
+                        n: Facing::Right
                     },
 
                     // Test edge
                     Edge {
                         a: Point2::new(390, 300),
                         b: Point2::new(410, 300),
-                        n: Vector2::new(0.0, -1.0)
+                        n: Facing::Up
                     },
                     Edge {
                         a: Point2::new(410, 300),
                         b: Point2::new(410, 600),
-                        n: Vector2::new(1.0, 0.0)
+                        n: Facing::Right
                     },
                     Edge {
                         a: Point2::new(390, 300),
                         b: Point2::new(390, 600),
-                        n: Vector2::new(-1.0, 0.0)
+                        n: Facing::Left
                     }
                 ]
             }
