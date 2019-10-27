@@ -77,6 +77,42 @@ impl LiveArea {
                         n: edge.n
                     }
                 );
+            } else if edge.a.xy().x == edge.b.xy().x && edge.a.xy().x == b.xy().x {
+                current_area.edges.push(
+                    Edge {
+                        a: edge.a,
+                        b: b,
+                        n: edge.n
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: b,
+                        b: a,
+                        n: Vector2::new(0.0, -1.0)
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: a,
+                        b: d,
+                        n: edge.n
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: d,
+                        b: c,
+                        n: Vector2::new(0.0, 1.0)
+                    }
+                );
+                current_area.edges.push(
+                    Edge {
+                        a: c,
+                        b: edge.b,
+                        n: edge.n
+                    }
+                );
             } else {
                 current_area.edges.push(edge)
             }
