@@ -1,7 +1,6 @@
 use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
 use nalgebra::{convert, Point2, Vector2};
-use nalgebra::base::coordinates::XY;
 
 #[derive(Debug,PartialEq)]
 pub struct Ball {
@@ -21,12 +20,10 @@ pub struct LiveArea {
     pub edges: Vec<Edge>
 }
 
-// fn is_point_on_edge(p: Point2<i16>, e: Edge) -> bool {
-//     let v1 = p - e.a;
-//     let v2 = e.b - e.a;
-
-//     v1.cross(&v2) == 0.0
-// }
+fn is_point_on_edge(p: Point2<i16>, e: &Edge) -> bool {
+    p >= e.a && p <= e.b ||
+    p >= e.b && p <= e.a
+}
 
 impl LiveArea {
     pub fn add_wall(
@@ -41,115 +38,49 @@ impl LiveArea {
             edges: Vec::default()
         };
 
+        let new_points = [a, b, c, d];
+
         for edge in self.edges {
 
-            let XY {x: ax, y: ay} = *edge.a;
-            let XY {x: bx, y: by} = *edge.b;
+            let i = match edge.n {
+                Facing::Down => 0,
+                Facing::Left => 1,
+                Facing::Up => 2,
+                Facing::Right => 3,
+            };
 
-            if ay == by && ay == a.xy().y {
+            if is_point_on_edge(new_points[i], &edge) {
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
-                        b: a,
+                        b: new_points[i],
                         n: edge.n
                     }
                 );
                 current_area.edges.push(
                     Edge {
-                        a: a,
-                        b: d,
-                        n: Facing::Left
+                        a: new_points[i],
+                        b: new_points[(i + 3) % 4],
+                        n: edge.n.clockwise()
                     }
                 );
                 current_area.edges.push(
                     Edge {
-                        a: d,
-                        b: c,
+                        a: new_points[(i + 3) % 4],
+                        b: new_points[(i + 2) % 4],
                         n: edge.n
                     }
                 );
                 current_area.edges.push(
                     Edge {
-                        a: c,
-                        b: b,
-                        n: Facing::Right
+                        a: new_points[(i + 2) % 4],
+                        b: new_points[(i + 1) % 4],
+                        n: edge.n.anticlockwise()
                     }
                 );
                 current_area.edges.push(
                     Edge {
-                        a: b,
-                        b: edge.b,
-                        n: edge.n
-                    }
-                );
-            } else if ax == bx && ax == b.xy().x {
-                current_area.edges.push(
-                    Edge {
-                        a: edge.a,
-                        b: b,
-                        n: edge.n
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: b,
-                        b: a,
-                        n: Facing::Up
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: a,
-                        b: d,
-                        n: edge.n
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: d,
-                        b: c,
-                        n: Facing::Down
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: c,
-                        b: edge.b,
-                        n: edge.n
-                    }
-                );
-            } else if ay == by && ay == c.xy().y {
-                current_area.edges.push(
-                    Edge {
-                        a: edge.a,
-                        b: c,
-                        n: edge.n
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: c,
-                        b: b,
-                        n: Facing::Right
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: b,
-                        b: a,
-                        n: edge.n
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: a,
-                        b: d,
-                        n: Facing::Left
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: d,
+                        a: new_points[(i + 1) % 4],
                         b: edge.b,
                         n: edge.n
                     }
@@ -176,6 +107,35 @@ pub enum Facing {
     Left,
     Up,
     Right
+}
+
+impl Facing {
+    fn clockwise(self) -> Self {
+        match self {
+            Self::Down => Self::Left,
+            Self::Left => Self::Up,
+            Self::Up => Self::Right,
+            Self::Right => Self::Down
+        }
+    }
+
+    fn anticlockwise(self) -> Self {
+        match self {
+            Self::Down => Self::Right,
+            Self::Right => Self::Up,
+            Self::Up => Self::Left,
+            Self::Left => Self::Down
+        }
+    }
+
+    // fn opposite(self) -> Self {
+    //     match self {
+    //         Self::Down => Self::Up,
+    //         Self::Up => Self::Down,
+    //         Self::Left => Self::Right,
+    //         Self::Right => Self::Left
+    //     }
+    // }
 }
 
 fn find_intersection(
