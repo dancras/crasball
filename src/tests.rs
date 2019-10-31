@@ -1,3 +1,5 @@
+mod fixture_parser;
+
 use nalgebra::{Point2, Vector2};
 
 use crate::game::{Ball, Edge, Facing, LiveArea};
@@ -31,6 +33,63 @@ fn test_add() {
 
 // LiveArea
 //
+
+
+// convert the string into a grid array
+// iterate and collect a list of vertexes
+//
+// v = | = v = | = v = | = v =
+// =   |   =   |   v   | v v
+//     |       |       | =
+
+// it will probably be super tough to convert these to edges actually..
+
+// maybe better to "search" for the starting point and trace the edges
+
+// a vertex cell has
+//  a wall has a joining wall in 2 axis and is not completely surrounded
+//
+
+// = = = = = = =
+// =     *     =
+// =           =
+// =           =
+// =        o  =
+// =           =
+// = = = = = = =
+
+// = = = = = = =
+// =     =     =
+// =           =
+// =           =
+// =        o  =
+// =           =
+// = = = = = = =
+
+// = = = = = = =
+// =     =     =
+// =     =     =
+// =     =     =
+// =  o  *  o  =
+// =     *     =
+// = = = = = = =
+
+// = = = =
+// =     =
+// =     =
+// =     =
+// =  o  =
+// =     =
+// = = = =
+
+//       = = = =
+//       =     =
+//       =     =
+//       =     =
+//       =  o  =
+//       =     =
+//       = = = =
+
 
 #[test]
 fn test_add_partial_wall_to_down_facing_edge() {
