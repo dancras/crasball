@@ -110,7 +110,7 @@ pub enum Facing {
 }
 
 impl Facing {
-    fn clockwise(self) -> Self {
+    pub fn clockwise(self) -> Self {
         match self {
             Self::Down => Self::Left,
             Self::Left => Self::Up,
@@ -119,7 +119,7 @@ impl Facing {
         }
     }
 
-    fn anticlockwise(self) -> Self {
+    pub fn anticlockwise(self) -> Self {
         match self {
             Self::Down => Self::Right,
             Self::Right => Self::Up,
