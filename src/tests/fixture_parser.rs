@@ -67,6 +67,30 @@ fn test_parse_to_array() {
     ]);
 }
 
+fn create_edge(x1: usize, y1: usize, x2: usize, y2: usize, facing: Facing) -> Edge {
+
+    let mods = match facing {
+        Facing::Down => (0, 0, -20, 0),
+        Facing::Left => (-20, 0, -20, -20),
+        Facing::Up => (-20, -20, 0, -20),
+        Facing::Right => (0, -20, 0, 0)
+    };
+
+    let (ax, ay, bx, by) = (
+        x1 as i16 * 20 + mods.0,
+        y1 as i16 * 20 + mods.1,
+        x2 as i16 * 20 + mods.2,
+        y2 as i16 * 20 + mods.3
+    );
+
+    Edge {
+        a: Point2::new(ax, ay),
+        b: Point2::new(bx, by),
+        n: facing
+    }
+
+}
+
 fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
 
     let mut edges: Vec<Edge> = Vec::new();
@@ -125,11 +149,9 @@ fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
         }
 
         if next_cell_out_of_bounds || next_cell_not_wall {
-            edges.push(Edge {
-                a: Point2::new(edge_start_x as i16 * 20, edge_start_y as i16 * 20),
-                b: Point2::new(x as i16 * 20, y as i16 * 20),
-                n: edge_facing
-            });
+            edges.push(
+                create_edge(edge_start_x, edge_start_y, x, y, edge_facing)
+            );
 
             if x == first_edge_x && y == first_edge_y {
                 break;
@@ -188,24 +210,62 @@ fn test_find_edges_simple_perimeter() {
     assert_eq!(find_edges(grid), [
         Edge {
             a: Point2::new(0, 0),
-            b: Point2::new(40, 0),
+            b: Point2::new(20, 0),
             n: Facing::Down
         },
         Edge {
-            a: Point2::new(40, 0),
-            b: Point2::new(40, 40),
+            a: Point2::new(20, 0),
+            b: Point2::new(20, 20),
             n: Facing::Left
         },
         Edge {
-            a: Point2::new(40, 40),
-            b: Point2::new(0, 40),
+            a: Point2::new(20, 20),
+            b: Point2::new(0, 20),
             n: Facing::Up
         },
         Edge {
-            a: Point2::new(0, 40),
+            a: Point2::new(0, 20),
             b: Point2::new(0, 0),
             n: Facing::Right
         }
     ]);
 
 }
+
+// #[test]
+// fn test_find_edges_complex_geometry() {
+
+//     let grid = parse_to_array("
+// = = = = = = =
+// =     =     =
+// =   = = =   =
+// =   = =     =
+// =     =     =
+// =           =
+// = = = = = = =
+// ");
+
+//     assert_eq!(find_edges(grid), [
+//         Edge {
+//             a: Point2::new(0, 0),
+//             b: Point2::new(40, 0),
+//             n: Facing::Down
+//         },
+//         Edge {
+//             a: Point2::new(40, 0),
+//             b: Point2::new(40, 40),
+//             n: Facing::Left
+//         },
+//         Edge {
+//             a: Point2::new(40, 40),
+//             b: Point2::new(0, 40),
+//             n: Facing::Up
+//         },
+//         Edge {
+//             a: Point2::new(0, 40),
+//             b: Point2::new(0, 0),
+//             n: Facing::Right
+//         }
+//     ]);
+
+// }
