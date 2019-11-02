@@ -3,6 +3,7 @@ mod fixture_parser;
 use nalgebra::{Point2};
 
 use fixture_parser::{parse_live_area};
+use crate::game::{LiveArea};
 
 // does not add an edge that is within another edge
 // combines edges that share point and direction
@@ -11,10 +12,8 @@ use fixture_parser::{parse_live_area};
 
 // https://math.stackexchange.com/questions/15815/how-to-union-many-polygons-efficiently
 
-#[test]
-fn test_add_partial_wall_to_down_facing_edge() {
-
-    let initial = parse_live_area("
+fn simplest_live_area() -> LiveArea {
+    parse_live_area("
 = = = = = = =
 =           =
 =           =
@@ -22,7 +21,13 @@ fn test_add_partial_wall_to_down_facing_edge() {
 =           =
 =           =
 = = = = = = =
-");
+")
+}
+
+#[test]
+fn test_add_partial_wall_to_down_facing_edge() {
+
+    let initial = simplest_live_area();
 
     let output = initial.add_wall(
         Point2::new(40, 0),
@@ -50,15 +55,7 @@ fn test_add_partial_wall_to_down_facing_edge() {
 #[test]
 fn test_add_partial_wall_to_left_facing_edge() {
 
-    let initial = parse_live_area("
-= = = = = = =
-=           =
-=           =
-=     o     =
-=           =
-=           =
-= = = = = = =
-");
+    let initial = simplest_live_area();
 
     let output = initial.add_wall(
         Point2::new(80, 40),
@@ -86,15 +83,7 @@ fn test_add_partial_wall_to_left_facing_edge() {
 #[test]
 fn test_add_partial_wall_to_up_facing_edge() {
 
-    let initial = parse_live_area("
-= = = = = = =
-=           =
-=           =
-=     o     =
-=           =
-=           =
-= = = = = = =
-");
+    let initial = simplest_live_area();
 
     let output = initial.add_wall(
         Point2::new(40, 80),
