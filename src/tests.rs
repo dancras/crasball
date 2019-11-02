@@ -3,6 +3,7 @@ mod fixture_parser;
 use nalgebra::{Point2, Vector2};
 
 use crate::game::{Ball, Edge, Facing, LiveArea};
+use fixture_parser::{parse_live_area};
 
 #[test]
 fn test_add() {
@@ -94,37 +95,15 @@ fn test_add() {
 #[test]
 fn test_add_partial_wall_to_down_facing_edge() {
 
-    let initial = LiveArea {
-        balls: vec![
-            Ball {
-                radius: 20.0,
-                position: Point2::new(50.0, 50.0),
-                movement: Vector2::new(0.0, 0.0)
-            }
-        ],
-        edges: vec![
-            Edge {
-                a: Point2::new(0, 0),
-                b: Point2::new(100, 0),
-                n: Facing::Down
-            },
-            Edge {
-                a: Point2::new(100, 0),
-                b: Point2::new(100, 100),
-                n: Facing::Left
-            },
-            Edge {
-                a: Point2::new(100, 100),
-                b: Point2::new(0, 100),
-                n: Facing::Up
-            },
-            Edge {
-                a: Point2::new(0, 100),
-                b: Point2::new(0, 0),
-                n: Facing::Right
-            }
-        ]
-    };
+    let initial = parse_live_area("
+= = = = = = =
+=           =
+=           =
+=     o     =
+=           =
+=           =
+= = = = = = =
+");
 
     let output = initial.add_wall(
         Point2::new(40, 0),

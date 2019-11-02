@@ -1,7 +1,7 @@
 use std::cmp;
-use nalgebra::{Point2};
+use nalgebra::{Point2, Vector2};
 
-use crate::game::{Edge, Facing};
+use crate::game::{Ball, Edge, Facing, LiveArea};
 
 #[derive(Clone,Copy,Debug,PartialEq)]
 enum CellSymbol {
@@ -12,6 +12,17 @@ enum CellSymbol {
 }
 
 type SymbolGrid = Vec<Vec<CellSymbol>>;
+
+pub fn parse_live_area(fixture: &str) -> LiveArea {
+
+    let grid = parse_to_array(fixture);
+
+    LiveArea {
+        balls: find_balls(&grid),
+        edges: find_edges(&grid)
+    }
+
+}
 
 fn parse_to_array(fixture: &str) -> SymbolGrid {
 
@@ -78,6 +89,57 @@ fn test_parse_to_array_empty_areas() {
     ]);
 }
 
+fn find_balls(grid: &SymbolGrid) -> Vec<Ball> {
+    let mut balls = Vec::new();
+
+    for (row_i, row) in grid.iter().enumerate() {
+        for (cell_i, cell) in row.iter().enumerate() {
+
+            if CellSymbol::Ball == *cell {
+
+                balls.push(Ball {
+                    radius: 20.0,
+                    position: Point2::new(
+                        cell_i as f32 * 20.0 - 10.0,
+                        row_i as f32 * 20.0 - 10.0,
+                    ),
+                    movement: Vector2::new(0.0, 0.0)
+                });
+
+            }
+
+        }
+    }
+
+    balls
+}
+
+
+#[test]
+fn test_find_balls() {
+
+    let grid = vec![
+        vec![CellSymbol::Wall, CellSymbol::Wall, CellSymbol::Wall],
+        vec![CellSymbol::Wall, CellSymbol::Ball, CellSymbol::Empty],
+        vec![CellSymbol::Wall, CellSymbol::Empty, CellSymbol::Ball]
+    ];
+
+    assert_eq!(find_balls(&grid), [
+        Ball {
+            radius: 20.0,
+            position: Point2::new(10.0, 10.0),
+            movement: Vector2::new(0.0, 0.0)
+        },
+        Ball {
+            radius: 20.0,
+            position: Point2::new(30.0, 30.0),
+            movement: Vector2::new(0.0, 0.0)
+        }
+    ]);
+
+}
+
+
 fn calculate_edge_coordinate(x: usize, y: usize, facing: Facing, next_facing: Facing) -> Point2<i16> {
 
     let mut mod_x = 0;
@@ -105,7 +167,7 @@ fn get_cell(grid: &SymbolGrid, x: i16, y: i16) -> Option<CellSymbol> {
 
 }
 
-fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
+fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
     let mut edges: Vec<Edge> = Vec::new();
 
@@ -251,7 +313,7 @@ fn test_find_edges_simple_perimeter() {
         vec![CellSymbol::Wall, CellSymbol::Wall, CellSymbol::Wall],
     ];
 
-    assert_eq!(find_edges(grid), [
+    assert_eq!(find_edges(&grid), [
         Edge {
             a: Point2::new(0, 0),
             b: Point2::new(20, 0),
@@ -289,7 +351,7 @@ fn test_find_edges_complex_geometry() {
 = = = = = = =
 ");
 
-    assert_eq!(find_edges(grid), [
+    assert_eq!(find_edges(&grid), [
         Edge {
             a: Point2::new(0, 0),
             b: Point2::new(40, 0),
@@ -387,7 +449,7 @@ fn test_find_edges_partial_area() {
   = = =
 ");
 
-    assert_eq!(find_edges(grid), [
+    assert_eq!(find_edges(&grid), [
         Edge {
             a: Point2::new(20, 40),
             b: Point2::new(40, 40),
