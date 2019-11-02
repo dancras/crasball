@@ -20,11 +20,7 @@ fn parse_to_array(fixture: &str) -> SymbolGrid {
     let longest_line = fixture.lines().fold(0, |a, v| cmp::max(a, v.len()));
     let cells_in_row = (longest_line + 1) / 2;
 
-    for l in fixture.lines() {
-
-        if l.len() == 0 {
-            continue;
-        }
+    for l in fixture.lines().skip(1) {
 
         let mut row = vec![CellSymbol::Empty; cells_in_row];
 
@@ -64,6 +60,21 @@ fn test_parse_to_array() {
     assert_eq!(result, [
         [CellSymbol::Wall, CellSymbol::NewWall, CellSymbol::NewWall, CellSymbol::Wall],
         [CellSymbol::Empty, CellSymbol::Wall, CellSymbol::Ball, CellSymbol::Empty]
+    ]);
+}
+
+#[test]
+fn test_parse_to_array_empty_areas() {
+    let fixture = "
+
+  =
+";
+
+    let result = parse_to_array(fixture);
+
+    assert_eq!(result, [
+        [CellSymbol::Empty, CellSymbol::Empty],
+        [CellSymbol::Empty, CellSymbol::Wall]
     ]);
 }
 
@@ -357,6 +368,74 @@ fn test_find_edges_complex_geometry() {
         Edge {
             a: Point2::new(0, 100),
             b: Point2::new(0, 0),
+            n: Facing::Right
+        }
+    ]);
+
+}
+
+#[test]
+fn test_find_edges_partial_area() {
+
+    let grid = parse_to_array("
+
+    = = = =
+  = =     = =
+  =         =
+  =         =
+  =   = = = =
+  = = =
+");
+
+    assert_eq!(find_edges(grid), [
+        Edge {
+            a: Point2::new(20, 40),
+            b: Point2::new(40, 40),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(40, 40),
+            b: Point2::new(40, 20),
+            n: Facing::Right
+        },
+        Edge {
+            a: Point2::new(40, 20),
+            b: Point2::new(80, 20),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(80, 20),
+            b: Point2::new(80, 40),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(80, 40),
+            b: Point2::new(100, 40),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(100, 40),
+            b: Point2::new(100, 80),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(100, 80),
+            b: Point2::new(40, 80),
+            n: Facing::Up
+        },
+        Edge {
+            a: Point2::new(40, 80),
+            b: Point2::new(40, 100),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(40, 100),
+            b: Point2::new(20, 100),
+            n: Facing::Up
+        },
+        Edge {
+            a: Point2::new(20, 100),
+            b: Point2::new(20, 40),
             n: Facing::Right
         }
     ]);
