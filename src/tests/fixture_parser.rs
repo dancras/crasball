@@ -167,6 +167,17 @@ fn get_cell(grid: &SymbolGrid, x: i16, y: i16) -> Option<CellSymbol> {
 
 }
 
+fn velocities_from_facing(facing: Facing) -> (i16, i16) {
+    match facing {
+        Facing::Down => (1, 0),
+        Facing::Left => (0, 1),
+        Facing::Up => (-1, 0),
+        Facing::Right => (0, -1)
+    }
+}
+
+// This algorithm searches the grid for a Wall cell, and then follows this wall
+// around, back to the start. No handling for bad fixtures.
 fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
     let mut edges: Vec<Edge> = Vec::new();
@@ -190,16 +201,19 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
         }
     }
 
+    // To traverse the walls of the grid using "velocities" for each axis
     let mut vx = 1;
     let mut vy = 0;
 
+    // To know when we are back where we started
     let first_edge_x = x;
     let first_edge_y = y;
 
+    // Initialise the first vertex and facing of the first edge
     let mut edge_start = Point2::new(x as i16 * 20, y as i16 * 20);
-
     let mut edge_facing = Facing::Down;
 
+    // Move from the starting point
     x = x + 1;
 
     loop {
@@ -211,12 +225,7 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
         let clockwise_facing = edge_facing.clockwise();
 
-        let clockwise_v = match clockwise_facing {
-            Facing::Down => (1, 0),
-            Facing::Left => (0, 1),
-            Facing::Up => (-1, 0),
-            Facing::Right => (0, -1)
-        };
+        let clockwise_v = velocities_from_facing(clockwise_facing);
 
         let clockwise_move_is_wall = match get_cell(&grid, x as i16 + clockwise_v.0, y as i16 + clockwise_v.1) {
             Some(CellSymbol::Wall) => true,
@@ -229,18 +238,11 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
             if clockwise_move_is_wall {
                 next_edge_facing = clockwise_facing;
-                vx = clockwise_v.0;
-                vy = clockwise_v.1;
             } else {
 
                 let anticlockwise_facing = edge_facing.anticlockwise();
 
-                let anticlockwise_v = match anticlockwise_facing {
-                    Facing::Down => (1, 0),
-                    Facing::Left => (0, 1),
-                    Facing::Up => (-1, 0),
-                    Facing::Right => (0, -1)
-                };
+                let anticlockwise_v = velocities_from_facing(anticlockwise_facing);
 
                 let anticlockwise_move_is_wall = match get_cell(&grid, x as i16 + anticlockwise_v.0, y as i16 + anticlockwise_v.1) {
                     Some(CellSymbol::Wall) => true,
@@ -249,9 +251,8 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
                 if anticlockwise_move_is_wall {
                     next_edge_facing = anticlockwise_facing;
-                    vx = anticlockwise_v.0;
-                    vy = anticlockwise_v.1;
                 } else {
+                    // For the case of backtracking we need to add an additional edge to traverse the current cell
                     let anticlockwise_facing = edge_facing.anticlockwise();
                     let edge_end = calculate_edge_coordinate(x, y, edge_facing, anticlockwise_facing);
 
@@ -265,16 +266,8 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
                     edge_facing = anticlockwise_facing;
 
                     let opposite_facing = anticlockwise_facing.anticlockwise();
-                    let opposite_v = match opposite_facing {
-                        Facing::Down => (1, 0),
-                        Facing::Left => (0, 1),
-                        Facing::Up => (-1, 0),
-                        Facing::Right => (0, -1)
-                    };
 
                     next_edge_facing = opposite_facing;
-                    vx = opposite_v.0;
-                    vy = opposite_v.1;
 
                 }
             }
@@ -293,6 +286,10 @@ fn find_edges(grid: &SymbolGrid) -> Vec<Edge> {
 
             edge_start = edge_end;
             edge_facing = next_edge_facing;
+
+            let next_velocities = velocities_from_facing(edge_facing);
+            vx = next_velocities.0;
+            vy = next_velocities.1;
 
         }
 
