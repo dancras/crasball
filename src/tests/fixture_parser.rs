@@ -67,26 +67,29 @@ fn test_parse_to_array() {
     ]);
 }
 
-fn create_edge(x1: usize, y1: usize, x2: usize, y2: usize, facing: Facing) -> Edge {
+fn calculate_edge_coordinate(x: usize, y: usize, facing: Facing, next_facing: Facing) -> Point2<i16> {
 
-    let mods = match facing {
-        Facing::Down => (0, 0, -20, 0),
-        Facing::Left => (-20, 0, -20, -20),
-        Facing::Up => (-20, -20, 0, -20),
-        Facing::Right => (0, -20, 0, 0)
-    };
+    let mut mod_x = 0;
+    let mut mod_y = 0;
 
-    let (ax, ay, bx, by) = (
-        x1 as i16 * 20 + mods.0,
-        y1 as i16 * 20 + mods.1,
-        x2 as i16 * 20 + mods.2,
-        y2 as i16 * 20 + mods.3
-    );
+    if Facing::Left == facing || Facing::Left == next_facing {
+        mod_x = -20;
+    }
 
-    Edge {
-        a: Point2::new(ax, ay),
-        b: Point2::new(bx, by),
-        n: facing
+    if Facing::Up == facing || Facing::Up == next_facing {
+        mod_y = -20;
+    }
+
+    Point2::new(x as i16 * 20 + mod_x, y as i16 * 20 + mod_y)
+}
+
+fn get_cell(grid: &SymbolGrid, x: i16, y: i16) -> Option<CellSymbol> {
+
+    if y < 0 || grid.len() <= y as usize
+        || x < 0 || grid[y as usize].len() <= x as usize {
+        None
+    } else {
+        Some(grid[y as usize][x as usize])
     }
 
 }
@@ -120,8 +123,7 @@ fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
     let first_edge_x = x;
     let first_edge_y = y;
 
-    let mut edge_start_x = x;
-    let mut edge_start_y = y;
+    let mut edge_start = Point2::new(x as i16 * 20, y as i16 * 20);
 
     let mut edge_facing = Facing::Down;
 
@@ -129,48 +131,95 @@ fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
 
     loop {
 
-        let next_x = x as i16 + vx;
-        let next_y = y as i16 + vy;
+        let next_move_is_not_wall = match get_cell(&grid, x as i16 + vx, y as i16 + vy) {
+            Some(CellSymbol::Wall) => false,
+            _ => true
+        };
 
-        let mut next_cell_out_of_bounds = false;
-        let mut next_cell_not_wall = false;
+        let clockwise_facing = edge_facing.clockwise();
 
-        if next_y < 0 || grid.len() <= next_y as usize
-            || next_x < 0 || grid[next_y as usize].len() <= next_x as usize {
-            next_cell_out_of_bounds = true;
-        } else {
-            let next_cell = grid[next_y as usize][next_x as usize];
+        let clockwise_v = match clockwise_facing {
+            Facing::Down => (1, 0),
+            Facing::Left => (0, 1),
+            Facing::Up => (-1, 0),
+            Facing::Right => (0, -1)
+        };
 
-            if let CellSymbol::Wall = next_cell {
-                // Do nothing
+        let clockwise_move_is_wall = match get_cell(&grid, x as i16 + clockwise_v.0, y as i16 + clockwise_v.1) {
+            Some(CellSymbol::Wall) => true,
+            _ => false
+        };
+
+        if next_move_is_not_wall || clockwise_move_is_wall {
+
+            let next_edge_facing;
+
+            if clockwise_move_is_wall {
+                next_edge_facing = clockwise_facing;
+                vx = clockwise_v.0;
+                vy = clockwise_v.1;
             } else {
-                next_cell_not_wall = true;
-            }
-        }
 
-        if next_cell_out_of_bounds || next_cell_not_wall {
-            edges.push(
-                create_edge(edge_start_x, edge_start_y, x, y, edge_facing)
-            );
+                let anticlockwise_facing = edge_facing.anticlockwise();
+
+                let anticlockwise_v = match anticlockwise_facing {
+                    Facing::Down => (1, 0),
+                    Facing::Left => (0, 1),
+                    Facing::Up => (-1, 0),
+                    Facing::Right => (0, -1)
+                };
+
+                let anticlockwise_move_is_wall = match get_cell(&grid, x as i16 + anticlockwise_v.0, y as i16 + anticlockwise_v.1) {
+                    Some(CellSymbol::Wall) => true,
+                    _ => false
+                };
+
+                if anticlockwise_move_is_wall {
+                    next_edge_facing = anticlockwise_facing;
+                    vx = anticlockwise_v.0;
+                    vy = anticlockwise_v.1;
+                } else {
+                    let anticlockwise_facing = edge_facing.anticlockwise();
+                    let edge_end = calculate_edge_coordinate(x, y, edge_facing, anticlockwise_facing);
+
+                    edges.push(Edge {
+                        a: edge_start,
+                        b: edge_end,
+                        n: edge_facing
+                    });
+
+                    edge_start = edge_end;
+                    edge_facing = anticlockwise_facing;
+
+                    let opposite_facing = anticlockwise_facing.anticlockwise();
+                    let opposite_v = match opposite_facing {
+                        Facing::Down => (1, 0),
+                        Facing::Left => (0, 1),
+                        Facing::Up => (-1, 0),
+                        Facing::Right => (0, -1)
+                    };
+
+                    next_edge_facing = opposite_facing;
+                    vx = opposite_v.0;
+                    vy = opposite_v.1;
+
+                }
+            }
+
+            let edge_end = calculate_edge_coordinate(x, y, edge_facing, next_edge_facing);
+
+            edges.push(Edge {
+                a: edge_start,
+                b: edge_end,
+                n: edge_facing
+            });
 
             if x == first_edge_x && y == first_edge_y {
                 break;
             }
 
-            edge_start_x = x;
-            edge_start_y = y;
-
-            edge_facing = edge_facing.clockwise();
-
-            let new_v = match edge_facing {
-                Facing::Down => (1, 0),
-                Facing::Left => (0, 1),
-                Facing::Up => (-1, 0),
-                Facing::Right => (0, -1)
-            };
-
-            vx = new_v.0;
-            vy = new_v.1;
+            edge_start = edge_end;
+            edge_facing = next_edge_facing;
 
         }
 
@@ -178,22 +227,6 @@ fn find_edges(grid: SymbolGrid) -> Vec<Edge> {
         y = (y as i16 + vy) as usize;
 
     }
-
-// 1 = 2   8 = 9
-// =   =   =   =
-// =   = 6 7   =
-// =   3 4     =
-// =     5  o  =
-// =           =
-// b = = = = = a
-
-// 1 = = ? = = v
-// =     =     =
-// =   4 ? 9   =
-// =   5 6     =
-// =     7  o  =
-// =           =
-// v = = = = = v
 
     edges
 }
@@ -232,40 +265,100 @@ fn test_find_edges_simple_perimeter() {
 
 }
 
-// #[test]
-// fn test_find_edges_complex_geometry() {
+#[test]
+fn test_find_edges_complex_geometry() {
 
-//     let grid = parse_to_array("
-// = = = = = = =
-// =     =     =
-// =   = = =   =
-// =   = =     =
-// =     =     =
-// =           =
-// = = = = = = =
-// ");
+    let grid = parse_to_array("
+= = = = = = =
+=     =     =
+=   = = =   =
+=   = =     =
+=     =     =
+=           =
+= = = = = = =
+");
 
-//     assert_eq!(find_edges(grid), [
-//         Edge {
-//             a: Point2::new(0, 0),
-//             b: Point2::new(40, 0),
-//             n: Facing::Down
-//         },
-//         Edge {
-//             a: Point2::new(40, 0),
-//             b: Point2::new(40, 40),
-//             n: Facing::Left
-//         },
-//         Edge {
-//             a: Point2::new(40, 40),
-//             b: Point2::new(0, 40),
-//             n: Facing::Up
-//         },
-//         Edge {
-//             a: Point2::new(0, 40),
-//             b: Point2::new(0, 0),
-//             n: Facing::Right
-//         }
-//     ]);
+    assert_eq!(find_edges(grid), [
+        Edge {
+            a: Point2::new(0, 0),
+            b: Point2::new(40, 0),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(40, 0),
+            b: Point2::new(40, 20),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(40, 20),
+            b: Point2::new(20, 20),
+            n: Facing::Up
+        },
+        Edge {
+            a: Point2::new(20, 20),
+            b: Point2::new(20, 60),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(20, 60),
+            b: Point2::new(40, 60),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(40, 60),
+            b: Point2::new(40, 80),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(40, 80),
+            b: Point2::new(60, 80),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(60, 80),
+            b: Point2::new(60, 40),
+            n: Facing::Right
+        },
+        Edge {
+            a: Point2::new(60, 40),
+            b: Point2::new(80, 40),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(80, 40),
+            b: Point2::new(80, 20),
+            n: Facing::Right
+        },
+        Edge {
+            a: Point2::new(80, 20),
+            b: Point2::new(60, 20),
+            n: Facing::Up
+        },
+        Edge {
+            a: Point2::new(60, 20),
+            b: Point2::new(60, 0),
+            n: Facing::Right
+        },
+        Edge {
+            a: Point2::new(60, 0),
+            b: Point2::new(100, 0),
+            n: Facing::Down
+        },
+        Edge {
+            a: Point2::new(100, 0),
+            b: Point2::new(100, 100),
+            n: Facing::Left
+        },
+        Edge {
+            a: Point2::new(100, 100),
+            b: Point2::new(0, 100),
+            n: Facing::Up
+        },
+        Edge {
+            a: Point2::new(0, 100),
+            b: Point2::new(0, 0),
+            n: Facing::Right
+        }
+    ]);
 
-// }
+}
