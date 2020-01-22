@@ -107,3 +107,31 @@ fn test_add_partial_wall_to_up_facing_edge() {
     assert_eq!(output, expected);
 
 }
+
+#[test]
+fn test_wall_off_section() {
+
+    let initial = simplest_live_area();
+
+    let output = initial.add_wall(
+        Point2::new(60, 0),
+        Point2::new(80, 0),
+        Point2::new(80, 100),
+        Point2::new(60, 100),
+    );
+
+    let expected = vec![
+        parse_live_area("
+= = = = =
+=       =
+=       =
+=     o =
+=       =
+=       =
+= = = = =
+")
+    ];
+
+    assert_eq!(output, expected);
+
+}

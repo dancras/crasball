@@ -25,6 +25,16 @@ fn is_point_on_edge(p: Point2<i16>, e: &Edge) -> bool {
     p >= e.b && p <= e.a
 }
 
+fn is_point_on_any_edge(p: Point2<i16>, edges: &[Edge]) -> (bool, usize) {
+    for (i, edge) in edges.iter().enumerate() {
+        if is_point_on_edge(p, edge) {
+            return (true, i);
+        }
+    }
+
+    (false, 0)
+}
+
 impl LiveArea {
     pub fn add_wall(
         self,
@@ -40,7 +50,15 @@ impl LiveArea {
 
         let new_points = [a, b, c, d];
 
-        for edge in self.edges {
+        let mut ignore_until = 0;
+        for j in 0..self.edges.len() {
+
+            if ignore_until > j {
+                continue;
+            }
+
+            let edge = self.edges[j];
+            let rest = &self.edges[(j+1)..];
 
             let i = match edge.n {
                 Facing::Down => 0,
@@ -57,6 +75,7 @@ impl LiveArea {
                         n: edge.n
                     }
                 );
+
                 current_area.edges.push(
                     Edge {
                         a: new_points[i],
@@ -64,27 +83,42 @@ impl LiveArea {
                         n: edge.n.clockwise()
                     }
                 );
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[(i + 3) % 4],
-                        b: new_points[(i + 2) % 4],
-                        n: edge.n
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[(i + 2) % 4],
-                        b: new_points[(i + 1) % 4],
-                        n: edge.n.anticlockwise()
-                    }
-                );
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[(i + 1) % 4],
-                        b: edge.b,
-                        n: edge.n
-                    }
-                );
+
+                let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 3) % 4], rest);
+                if connects_edges {
+                    ignore_until = connect_i + 2;
+
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 3) % 4],
+                            b: rest[connect_i].b,
+                            n: rest[connect_i].n
+                        }
+                    );
+                } else {
+
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 3) % 4],
+                            b: new_points[(i + 2) % 4],
+                            n: edge.n
+                        }
+                    );
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 2) % 4],
+                            b: new_points[(i + 1) % 4],
+                            n: edge.n.anticlockwise()
+                        }
+                    );
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 1) % 4],
+                            b: edge.b,
+                            n: edge.n
+                        }
+                    );
+                }
             } else {
                 current_area.edges.push(edge)
             }
@@ -94,7 +128,7 @@ impl LiveArea {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub struct Edge {
     pub a: Point2<i16>,
     pub b: Point2<i16>,
