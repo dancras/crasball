@@ -2,7 +2,7 @@ use ggez::{Context, GameResult};
 use ggez::graphics::{self, Color};
 use nalgebra::{convert, Point2, Vector2};
 
-#[derive(Debug,PartialEq)]
+#[derive(Clone,Copy,Debug,PartialEq)]
 pub struct Ball {
     pub radius: f32,
     pub position: Point2<f32>,
@@ -36,6 +36,11 @@ fn is_point_on_any_edge(p: Point2<i16>, edges: &[Edge]) -> (bool, usize) {
 }
 
 impl LiveArea {
+
+    fn ball_is_inside(self, ball: Ball) -> bool {
+        false
+    }
+
     pub fn add_wall(
         self,
         a: Point2<i16>,
@@ -44,7 +49,7 @@ impl LiveArea {
         d: Point2<i16>
     ) -> Vec<LiveArea> {
         let mut current_area = LiveArea {
-            balls: self.balls,
+            balls: Vec::default(),
             edges: Vec::default()
         };
 
@@ -86,6 +91,11 @@ impl LiveArea {
 
                 let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 3) % 4], rest);
                 if connects_edges {
+
+                    // iterate balls and put those in "current_area" into it
+                    // if all balls are in, ignore the other edges
+                    // otherwise the other balls need to be added to another area
+
                     ignore_until = connect_i + 2;
 
                     current_area.edges.push(
@@ -95,6 +105,12 @@ impl LiveArea {
                             n: rest[connect_i].n
                         }
                     );
+
+                    for ball in self.balls.clone() {
+                        if current_area.ball_is_inside(ball) {
+                            current_area.balls.push(ball);
+                        }
+                    }
                 } else {
 
                     current_area.edges.push(
