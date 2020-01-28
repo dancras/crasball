@@ -37,8 +37,18 @@ fn is_point_on_any_edge(p: Point2<i16>, edges: &[Edge]) -> (bool, usize) {
 
 impl LiveArea {
 
-    fn ball_is_inside(self, ball: Ball) -> bool {
-        false
+    fn ball_is_inside(&self, ball: Ball) -> bool {
+        let (horizontal, vertical): (Vec<Edge>, Vec<Edge>) = self.edges
+            .iter()
+            .partition(|&e| match e.n {
+                Facing::Down => true,
+                Facing::Left => false,
+                Facing::Up => true,
+                Facing::Right => false,
+            });
+
+        horizontal.iter().filter(|&e| find_intersection(convert(e.a), convert(e.b), ball.position, ball.position + Vector2::new(0.0, 1024.0)).0).count() % 2 == 1 &&
+        vertical.iter().filter(|&e| find_intersection(convert(e.a), convert(e.b), ball.position, ball.position + Vector2::new(1024.0, 0.0)).0).count() % 2 == 1
     }
 
     pub fn add_wall(
@@ -96,6 +106,7 @@ impl LiveArea {
                     // if all balls are in, ignore the other edges
                     // otherwise the other balls need to be added to another area
 
+                    // TODO add some mechanism to not ignore, but switch to another "current_area"
                     ignore_until = connect_i + 2;
 
                     current_area.edges.push(
@@ -106,11 +117,6 @@ impl LiveArea {
                         }
                     );
 
-                    for ball in self.balls.clone() {
-                        if current_area.ball_is_inside(ball) {
-                            current_area.balls.push(ball);
-                        }
-                    }
                 } else {
 
                     current_area.edges.push(
@@ -137,6 +143,12 @@ impl LiveArea {
                 }
             } else {
                 current_area.edges.push(edge)
+            }
+        }
+
+        for ball in self.balls.clone() {
+            if current_area.ball_is_inside(ball) {
+                current_area.balls.push(ball);
             }
         }
 
