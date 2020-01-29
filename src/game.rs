@@ -58,6 +58,9 @@ impl LiveArea {
         c: Point2<i16>,
         d: Point2<i16>
     ) -> Vec<LiveArea> {
+
+        let mut output_areas: Vec<LiveArea> = Vec::default();
+
         let mut current_area = LiveArea {
             balls: Vec::default(),
             edges: Vec::default()
@@ -102,11 +105,6 @@ impl LiveArea {
                 let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 3) % 4], rest);
                 if connects_edges {
 
-                    // iterate balls and put those in "current_area" into it
-                    // if all balls are in, ignore the other edges
-                    // otherwise the other balls need to be added to another area
-
-                    // TODO add some mechanism to not ignore, but switch to another "current_area"
                     ignore_until = connect_i + 2;
 
                     current_area.edges.push(
@@ -116,6 +114,49 @@ impl LiveArea {
                             n: rest[connect_i].n
                         }
                     );
+
+                    let mut other_area = LiveArea {
+                        balls: Vec::default(),
+                        edges: Vec::default()
+                    };
+
+                    other_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 1) % 4],
+                            b: edge.b,
+                            n: edge.n
+                        }
+                    );
+
+                    for jj in j+1..ignore_until-1 {
+                        other_area.edges.push(self.edges[jj]);
+                    }
+
+                    other_area.edges.push(
+                        Edge {
+                            a: rest[connect_i].a,
+                            b: new_points[(i + 2) % 4],
+                            n: rest[connect_i].n
+                        }
+                    );
+
+                    other_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 2) % 4],
+                            b: new_points[(i + 1) % 4],
+                            n: rest[connect_i].n.clockwise()
+                        }
+                    );
+
+                    for ball in self.balls.clone() {
+                        if other_area.ball_is_inside(ball) {
+                            other_area.balls.push(ball);
+                        }
+                    }
+
+                    if other_area.balls.len() > 0 {
+                        output_areas.push(other_area);
+                    }
 
                 } else {
 
@@ -152,7 +193,9 @@ impl LiveArea {
             }
         }
 
-        vec![current_area]
+        output_areas.insert(0, current_area);
+
+        output_areas
     }
 }
 

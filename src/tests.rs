@@ -158,22 +158,22 @@ fn test_split_live_area_vertically() {
 
     let expected = vec![
         parse_live_area("
-= = = = =
-=       =
-=       =
-= o     =
-=       =
-=       =
-= = = = =
+= = = =
+=     =
+=     =
+= o   =
+=     =
+=     =
+= = = =
 "),
         parse_live_area("
-        = = = = =
-        =       =
-        =       =
-        =     o =
-        =       =
-        =       =
-        = = = = =
+      = = = =
+      =     =
+      =     =
+      =   o =
+      =     =
+      =     =
+      = = = =
 ")
     ];
 
