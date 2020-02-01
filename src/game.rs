@@ -105,7 +105,7 @@ impl LiveArea {
                 let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 3) % 4], rest);
                 if connects_edges {
 
-                    ignore_until = connect_i + 2;
+                    ignore_until = connect_i + 1 + (j + 1);
 
                     current_area.edges.push(
                         Edge {
@@ -147,6 +147,8 @@ impl LiveArea {
                             n: rest[connect_i].n.clockwise()
                         }
                     );
+
+                    other_area.edges.rotate_right(i);
 
                     for ball in self.balls.clone() {
                         if other_area.ball_is_inside(ball) {

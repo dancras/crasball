@@ -180,3 +180,45 @@ fn test_split_live_area_vertically() {
     assert_eq!(output, expected);
 
 }
+
+#[test]
+fn test_split_live_area_horizontally() {
+
+    let initial = parse_live_area("
+= = = = = = =
+=     o     =
+=           =
+=           =
+=           =
+=     o     =
+= = = = = = =
+");
+
+    let output = initial.add_wall(
+        Point2::new(0, 40),
+        Point2::new(100, 40),
+        Point2::new(100, 60),
+        Point2::new(0, 60)
+    );
+
+    let expected = vec![
+        parse_live_area("
+= = = = = = =
+=     o     =
+=           =
+= = = = = = =
+"),
+        parse_live_area("
+
+
+
+= = = = = = =
+=           =
+=     o     =
+= = = = = = =
+")
+    ];
+
+    assert_eq!(output, expected);
+
+}
