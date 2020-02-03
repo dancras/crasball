@@ -120,15 +120,23 @@ impl LiveArea {
                         edges: Vec::default()
                     };
 
-                    other_area.edges.push(
-                        Edge {
-                            a: new_points[(i + 1) % 4],
-                            b: edge.b,
-                            n: edge.n
-                        }
-                    );
+                    let mut skip_jj = 1;
+                    let mut start_point = new_points[(i + 1) % 4];
 
-                    for jj in j+1..ignore_until-1 {
+                    if new_points[(i + 1) % 4] != edge.b {
+                        other_area.edges.push(
+                            Edge {
+                                a: new_points[(i + 1) % 4],
+                                b: edge.b,
+                                n: edge.n
+                            }
+                        );
+                    } else {
+                        skip_jj += 1;
+                        start_point = rest[0].b;
+                    }
+
+                    for jj in j+skip_jj..ignore_until-1 {
                         other_area.edges.push(self.edges[jj]);
                     }
 
@@ -143,7 +151,7 @@ impl LiveArea {
                     other_area.edges.push(
                         Edge {
                             a: new_points[(i + 2) % 4],
-                            b: new_points[(i + 1) % 4],
+                            b: start_point,
                             n: rest[connect_i].n.clockwise()
                         }
                     );
