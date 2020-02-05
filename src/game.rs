@@ -35,6 +35,10 @@ fn is_point_on_any_edge(p: Point2<i16>, edges: &[Edge]) -> (bool, usize) {
     (false, 0)
 }
 
+// fn wrap_new_points_i(i: usize) -> usize {
+//     (3 - (((0 - i) % 4) - 1)) % 4
+// }
+
 impl LiveArea {
 
     fn ball_is_inside(&self, ball: Ball) -> bool {
@@ -85,7 +89,43 @@ impl LiveArea {
                 Facing::Right => 3,
             };
 
-            if is_point_on_edge(new_points[i], &edge) {
+            if edge.b == new_points[(i + 3) % 4] {
+
+                current_area.edges.push(
+                    Edge {
+                        a: edge.a,
+                        b: new_points[(i + 2) % 4],
+                        n: edge.n
+                    }
+                );
+
+                current_area.edges.push(
+                    Edge {
+                        a: new_points[(i + 2) % 4],
+                        b: new_points[(i + 1) % 4],
+                        n: edge.n.anticlockwise()
+                    }
+                );
+
+                current_area.edges.push(
+                    Edge {
+                        a: new_points[(i + 1) % 4],
+                        b: new_points[i],
+                        n: edge.n.opposite()
+                    }
+                );
+
+                current_area.edges.push(
+                    Edge {
+                        a: new_points[i],
+                        b: rest[0].b,
+                        n: edge.n.anticlockwise()
+                    }
+                );
+
+                ignore_until = j + 2;
+
+            } else if is_point_on_edge(new_points[i], &edge) {
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
@@ -243,14 +283,14 @@ impl Facing {
         }
     }
 
-    // fn opposite(self) -> Self {
-    //     match self {
-    //         Self::Down => Self::Up,
-    //         Self::Up => Self::Down,
-    //         Self::Left => Self::Right,
-    //         Self::Right => Self::Left
-    //     }
-    // }
+    fn opposite(self) -> Self {
+        match self {
+            Self::Down => Self::Up,
+            Self::Up => Self::Down,
+            Self::Left => Self::Right,
+            Self::Right => Self::Left
+        }
+    }
 }
 
 fn find_intersection(

@@ -267,3 +267,84 @@ fn test_split_l_shaped_live_area() {
     assert_eq!(output, expected);
 
 }
+
+#[test]
+fn test_add_wall_extending_existing_wall() {
+
+    let initial = parse_live_area("
+= = = =
+= o   =
+=     =
+=     = = = =
+=           =
+=           =
+= = = = = = =
+");
+
+    let output = initial.add_wall(
+        Point2::new(40, 60),
+        Point2::new(60, 60),
+        Point2::new(60, 80),
+        Point2::new(40, 80)
+    );
+
+    let expected = vec![
+        parse_live_area("
+= = = =
+= o   =
+=     =
+=     = = = =
+=     =     =
+=           =
+= = = = = = =
+")
+    ];
+
+    assert_eq!(output, expected);
+
+}
+
+// #[test]
+// fn test_split_l_shaped_live_area_r90() {
+
+//     let initial = parse_live_area("
+// = = = =
+// = o   =
+// =     =
+// =     = = = =
+// =           =
+// =         o =
+// = = = = = = =
+// ");
+
+//     let output = initial.add_wall(
+//         Point2::new(40, 60),
+//         Point2::new(60, 60),
+//         Point2::new(60, 100),
+//         Point2::new(40, 100)
+//     );
+
+//     let expected = vec![
+//         parse_live_area("
+// = = = =
+// = o   =
+// =     =
+// =     =
+// =     =
+// =     =
+// = = = =
+// "),
+//         parse_live_area("
+
+
+
+//       = = = =
+//       =     =
+//       =   o =
+//       = = = =
+// ")
+//     ];
+
+//     assert_eq!(output, expected);
+
+// }
