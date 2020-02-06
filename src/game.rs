@@ -99,31 +99,89 @@ impl LiveArea {
                     }
                 );
 
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[(i + 2) % 4],
-                        b: new_points[(i + 1) % 4],
-                        n: edge.n.anticlockwise()
-                    }
-                );
+                let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 2) % 4], rest);
+                if connects_edges {
+                    ignore_until = connect_i + 1 + (j + 1);
 
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[(i + 1) % 4],
-                        b: new_points[i],
-                        n: edge.n.opposite()
-                    }
-                );
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 2) % 4],
+                            b: rest[connect_i].b,
+                            n: rest[connect_i].n
+                        }
+                    );
 
-                current_area.edges.push(
-                    Edge {
-                        a: new_points[i],
-                        b: rest[0].b,
-                        n: edge.n.anticlockwise()
-                    }
-                );
+                    let mut other_area = LiveArea {
+                        balls: Vec::default(),
+                        edges: Vec::default()
+                    };
 
-                ignore_until = j + 2;
+                    other_area.edges.push(
+                        Edge {
+                            a: new_points[i],
+                            b: rest[0].b,
+                            n: rest[0].n
+                        }
+                    );
+
+                    for jj in j+2..ignore_until-1 {
+                        other_area.edges.push(self.edges[jj]);
+                    }
+
+                    other_area.edges.push(
+                        Edge {
+                            a: rest[connect_i].a,
+                            b: new_points[(i + 1) % 4],
+                            n: rest[connect_i].n
+                        }
+                    );
+
+                    other_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 1) % 4],
+                            b: new_points[i],
+                            n: rest[connect_i].n.clockwise()
+                        }
+                    );
+
+                    for ball in self.balls.clone() {
+                        if other_area.ball_is_inside(ball) {
+                            other_area.balls.push(ball);
+                        }
+                    }
+
+                    if other_area.balls.len() > 0 {
+                        output_areas.push(other_area);
+                    }
+
+                } else {
+
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 2) % 4],
+                            b: new_points[(i + 1) % 4],
+                            n: edge.n.anticlockwise()
+                        }
+                    );
+
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[(i + 1) % 4],
+                            b: new_points[i],
+                            n: edge.n.opposite()
+                        }
+                    );
+
+                    current_area.edges.push(
+                        Edge {
+                            a: new_points[i],
+                            b: rest[0].b,
+                            n: edge.n.anticlockwise()
+                        }
+                    );
+
+                    ignore_until = j + 2;
+                }
 
             } else if is_point_on_edge(new_points[i], &edge) {
                 current_area.edges.push(
