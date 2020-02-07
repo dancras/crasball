@@ -83,7 +83,7 @@ impl LiveArea {
             let edge = self.edges[i];
             let rest = &self.edges[(i+1)..];
 
-            // Point A is the most clockwise point that might lie on the
+            // Point A is the first clockwise point that might lie on the
             // current egde, based on the Facing direction
             let point_a_index = match edge.n {
                 Facing::Down => 0,
