@@ -58,10 +58,10 @@ impl LiveArea {
     // TODO: ITS TIME TO GENERALISE THIS MONSTER!!!
     pub fn add_wall(
         self,
-        a: Point2<i16>,
-        b: Point2<i16>,
-        c: Point2<i16>,
-        d: Point2<i16>
+        top_left: Point2<i16>,
+        top_right: Point2<i16>,
+        bottom_right: Point2<i16>,
+        bottom_left: Point2<i16>
     ) -> Vec<LiveArea> {
 
         let mut output_areas: Vec<LiveArea> = Vec::default();
@@ -71,29 +71,31 @@ impl LiveArea {
             edges: Vec::default()
         };
 
-        let new_points = [a, b, c, d];
+        let new_points = [top_left, top_right, bottom_right, bottom_left];
 
         let mut ignore_until = 0;
-        for j in 0..self.edges.len() {
+        for i in 0..self.edges.len() {
 
-            if ignore_until > j {
+            if ignore_until > i {
                 continue;
             }
 
-            let edge = self.edges[j];
-            let rest = &self.edges[(j+1)..];
+            let edge = self.edges[i];
+            let rest = &self.edges[(i+1)..];
 
-            let i = match edge.n {
+            // Point A is the most clockwise point that might lie on the
+            // current egde, based on the Facing direction
+            let point_a_index = match edge.n {
                 Facing::Down => 0,
                 Facing::Left => 1,
                 Facing::Up => 2,
                 Facing::Right => 3,
             };
 
-            let point_a = new_points[i];
-            let point_b = new_points[(i + 1) % 4];
-            let point_c = new_points[(i + 2) % 4];
-            let point_d = new_points[(i + 3) % 4];
+            let point_a = new_points[point_a_index];
+            let point_b = new_points[(point_a_index + 1) % 4];
+            let point_c = new_points[(point_a_index + 2) % 4];
+            let point_d = new_points[(point_a_index + 3) % 4];
 
             if edge.b == point_d {
 
@@ -107,7 +109,7 @@ impl LiveArea {
 
                 let (connects_edges, connect_i) = is_point_on_any_edge(point_c, rest);
                 if connects_edges {
-                    ignore_until = connect_i + 1 + (j + 1);
+                    ignore_until = connect_i + 1 + (i + 1);
 
                     current_area.edges.push(
                         Edge {
@@ -130,8 +132,8 @@ impl LiveArea {
                         }
                     );
 
-                    for jj in j+2..ignore_until-1 {
-                        other_area.edges.push(self.edges[jj]);
+                    for j in i+2..ignore_until-1 {
+                        other_area.edges.push(self.edges[j]);
                     }
 
                     other_area.edges.push(
@@ -186,7 +188,7 @@ impl LiveArea {
                         }
                     );
 
-                    ignore_until = j + 2;
+                    ignore_until = i + 2;
                 }
 
             } else if is_point_on_edge(point_a, &edge) {
@@ -209,7 +211,7 @@ impl LiveArea {
                 let (connects_edges, connect_i) = is_point_on_any_edge(point_d, rest);
                 if connects_edges {
 
-                    ignore_until = connect_i + 1 + (j + 1);
+                    ignore_until = connect_i + 1 + (i + 1);
 
                     current_area.edges.push(
                         Edge {
@@ -224,7 +226,7 @@ impl LiveArea {
                         edges: Vec::default()
                     };
 
-                    let mut skip_jj = 1;
+                    let mut skip_j = 1;
                     let mut start_point = point_b;
 
                     if point_b != edge.b {
@@ -236,12 +238,12 @@ impl LiveArea {
                             }
                         );
                     } else {
-                        skip_jj += 1;
+                        skip_j += 1;
                         start_point = rest[0].b;
                     }
 
-                    for jj in j+skip_jj..ignore_until-1 {
-                        other_area.edges.push(self.edges[jj]);
+                    for j in i+skip_j..ignore_until-1 {
+                        other_area.edges.push(self.edges[j]);
                     }
 
                     other_area.edges.push(
@@ -260,7 +262,7 @@ impl LiveArea {
                         }
                     );
 
-                    other_area.edges.rotate_right(i);
+                    other_area.edges.rotate_right(point_a_index);
 
                     for ball in self.balls.clone() {
                         if other_area.ball_is_inside(ball) {
