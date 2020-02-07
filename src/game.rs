@@ -55,6 +55,7 @@ impl LiveArea {
         vertical.iter().filter(|&e| find_intersection(convert(e.a), convert(e.b), ball.position, ball.position + Vector2::new(1024.0, 0.0)).0).count() % 2 == 1
     }
 
+    // TODO: ITS TIME TO GENERALISE THIS MONSTER!!!
     pub fn add_wall(
         self,
         a: Point2<i16>,
@@ -89,23 +90,28 @@ impl LiveArea {
                 Facing::Right => 3,
             };
 
-            if edge.b == new_points[(i + 3) % 4] {
+            let point_a = new_points[i];
+            let point_b = new_points[(i + 1) % 4];
+            let point_c = new_points[(i + 2) % 4];
+            let point_d = new_points[(i + 3) % 4];
+
+            if edge.b == point_d {
 
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
-                        b: new_points[(i + 2) % 4],
+                        b: point_c,
                         n: edge.n
                     }
                 );
 
-                let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 2) % 4], rest);
+                let (connects_edges, connect_i) = is_point_on_any_edge(point_c, rest);
                 if connects_edges {
                     ignore_until = connect_i + 1 + (j + 1);
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 2) % 4],
+                            a: point_c,
                             b: rest[connect_i].b,
                             n: rest[connect_i].n
                         }
@@ -118,7 +124,7 @@ impl LiveArea {
 
                     other_area.edges.push(
                         Edge {
-                            a: new_points[i],
+                            a: point_a,
                             b: rest[0].b,
                             n: rest[0].n
                         }
@@ -131,15 +137,15 @@ impl LiveArea {
                     other_area.edges.push(
                         Edge {
                             a: rest[connect_i].a,
-                            b: new_points[(i + 1) % 4],
+                            b: point_b,
                             n: rest[connect_i].n
                         }
                     );
 
                     other_area.edges.push(
                         Edge {
-                            a: new_points[(i + 1) % 4],
-                            b: new_points[i],
+                            a: point_b,
+                            b: point_a,
                             n: rest[connect_i].n.clockwise()
                         }
                     );
@@ -158,23 +164,23 @@ impl LiveArea {
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 2) % 4],
-                            b: new_points[(i + 1) % 4],
+                            a: point_c,
+                            b: point_b,
                             n: edge.n.anticlockwise()
                         }
                     );
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 1) % 4],
-                            b: new_points[i],
+                            a: point_b,
+                            b: point_a,
                             n: edge.n.opposite()
                         }
                     );
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[i],
+                            a: point_a,
                             b: rest[0].b,
                             n: edge.n.anticlockwise()
                         }
@@ -183,31 +189,31 @@ impl LiveArea {
                     ignore_until = j + 2;
                 }
 
-            } else if is_point_on_edge(new_points[i], &edge) {
+            } else if is_point_on_edge(point_a, &edge) {
                 current_area.edges.push(
                     Edge {
                         a: edge.a,
-                        b: new_points[i],
+                        b: point_a,
                         n: edge.n
                     }
                 );
 
                 current_area.edges.push(
                     Edge {
-                        a: new_points[i],
-                        b: new_points[(i + 3) % 4],
+                        a: point_a,
+                        b: point_d,
                         n: edge.n.clockwise()
                     }
                 );
 
-                let (connects_edges, connect_i) = is_point_on_any_edge(new_points[(i + 3) % 4], rest);
+                let (connects_edges, connect_i) = is_point_on_any_edge(point_d, rest);
                 if connects_edges {
 
                     ignore_until = connect_i + 1 + (j + 1);
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 3) % 4],
+                            a: point_d,
                             b: rest[connect_i].b,
                             n: rest[connect_i].n
                         }
@@ -219,12 +225,12 @@ impl LiveArea {
                     };
 
                     let mut skip_jj = 1;
-                    let mut start_point = new_points[(i + 1) % 4];
+                    let mut start_point = point_b;
 
-                    if new_points[(i + 1) % 4] != edge.b {
+                    if point_b != edge.b {
                         other_area.edges.push(
                             Edge {
-                                a: new_points[(i + 1) % 4],
+                                a: point_b,
                                 b: edge.b,
                                 n: edge.n
                             }
@@ -241,14 +247,14 @@ impl LiveArea {
                     other_area.edges.push(
                         Edge {
                             a: rest[connect_i].a,
-                            b: new_points[(i + 2) % 4],
+                            b: point_c,
                             n: rest[connect_i].n
                         }
                     );
 
                     other_area.edges.push(
                         Edge {
-                            a: new_points[(i + 2) % 4],
+                            a: point_c,
                             b: start_point,
                             n: rest[connect_i].n.clockwise()
                         }
@@ -270,21 +276,21 @@ impl LiveArea {
 
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 3) % 4],
-                            b: new_points[(i + 2) % 4],
+                            a: point_d,
+                            b: point_c,
                             n: edge.n
                         }
                     );
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 2) % 4],
-                            b: new_points[(i + 1) % 4],
+                            a: point_c,
+                            b: point_b,
                             n: edge.n.anticlockwise()
                         }
                     );
                     current_area.edges.push(
                         Edge {
-                            a: new_points[(i + 1) % 4],
+                            a: point_b,
                             b: edge.b,
                             n: edge.n
                         }
