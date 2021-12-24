@@ -19,6 +19,14 @@
             "program": "${workspaceFolder}/target/debug/examples/collision_ball_ball_rear",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Test",
+            "program": "${workspaceFolder}/target/debug/deps/crasball-4dc8e196b441db7c",
+            "args": ["--test", "test_find_edges_complex_geometry"],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

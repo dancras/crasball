@@ -348,3 +348,60 @@ fn test_split_l_shaped_live_area_extending_existing_wall() {
     assert_eq!(output, expected);
 
 }
+
+// #[test]
+fn test_split_area_into_multiple_areas() {
+
+    let initial = parse_live_area("
+= = = = = = =
+= o       o =
+=     = = = =
+=         o =
+=     = = = =
+=         o =
+= = = = = = =
+");
+
+    let output = initial.add_wall(
+        Point2::new(20, 0),
+        Point2::new(40, 0),
+        Point2::new(40, 100),
+        Point2::new(20, 100)
+    );
+
+    let expected = vec![
+        parse_live_area("
+= = =
+= o =
+=   =
+=   =
+=   =
+=   =
+= = =
+"),
+        parse_live_area("
+    = = = = =
+    =     o =
+    = = = = =
+"),
+        parse_live_area("
+
+
+    = = = = =
+    =     o =
+    = = = = =
+"),
+        parse_live_area("
+
+
+
+
+    = = = = =
+    =     o =
+    = = = = =
+")
+    ];
+
+    assert_eq!(output, expected);
+
+}

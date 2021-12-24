@@ -74,14 +74,24 @@ impl LiveArea {
         let new_points = [top_left, top_right, bottom_right, bottom_left];
 
         let mut ignore_until = 0;
-        for i in 0..self.edges.len() {
+        let mut i = 0;
+        let mut search_edges = self.edges;
+
+
+        //
+        loop {
+
+            if i == search_edges.len() {
+                break;
+            }
 
             if ignore_until > i {
+                i = i + 1;
                 continue;
             }
 
-            let edge = self.edges[i];
-            let rest = &self.edges[(i+1)..];
+            let edge = search_edges[i];
+            let rest = &search_edges[(i+1)..];
 
             // Point A is the first clockwise point that might lie on the
             // current egde, based on the Facing direction
@@ -133,7 +143,7 @@ impl LiveArea {
                     );
 
                     for j in i+2..ignore_until-1 {
-                        other_area.edges.push(self.edges[j]);
+                        other_area.edges.push(search_edges[j]);
                     }
 
                     other_area.edges.push(
@@ -243,7 +253,7 @@ impl LiveArea {
                     }
 
                     for j in i+skip_j..ignore_until-1 {
-                        other_area.edges.push(self.edges[j]);
+                        other_area.edges.push(search_edges[j]);
                     }
 
                     other_area.edges.push(
@@ -301,6 +311,8 @@ impl LiveArea {
             } else {
                 current_area.edges.push(edge)
             }
+
+            i = i + 1;
         }
 
         for ball in self.balls.clone() {
